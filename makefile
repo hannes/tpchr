@@ -100,13 +100,13 @@
 ################
 ## CHANGE NAME OF ANSI COMPILER HERE
 ################
-CC      = gcc
+CC      = gcc -O3 -funroll-loops -D_LARGEFILE_SOURCE=1 -Wall
 # Current values for DATABASE are: INFORMIX, DB2, TDAT (Teradata)
 #                                  SQLSERVER, SYBASE, ORACLE
 # Current values for MACHINE are:  ATT, DOS, HP, IBM, ICL, MVS, 
 #                                  SGI, SUN, U2200, VMS, LINUX, WIN32 
 # Current values for WORKLOAD are:  TPCH
-DATABASE= ORACLE
+DATABASE= POSTGRES
 MACHINE = MAC
 WORKLOAD = TPCH
 #

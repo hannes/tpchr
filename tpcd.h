@@ -49,6 +49,18 @@
 /*
  * database portability defines
  */
+#ifdef POSTGRES
+#ifndef EOL_HANDLING
+#define EOL_HANDLING
+#endif
+#define GEN_QUERY_PLAN "EXPLAIN"
+#define START_TRAN "BEGIN;"
+#define END_TRAN "COMMIT;"
+#define SET_OUTPUT "\\o %s \n"
+#define SET_ROWCOUNT "LIMIT %d;"
+#define SET_DBASE "\\c %s \n"
+#endif
+
 #ifdef DB2
 #define GEN_QUERY_PLAN  "SET CURRENT EXPLAIN SNAPSHOT ON;"
 #define START_TRAN      ""
