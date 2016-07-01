@@ -1,0 +1,82 @@
+In this document, we will illustrate how to build tpch-dbgen, use dbgen to generate 100G data, and then use aws command line interface to upload the 100G data to S3.
+
+Step 1:
+
+Select an image of Centos 6.7 to start a new instance.
+
+Step 2:
+
+After the new instance is started, login into the instance through its public IP and the ssh-key of ~/.ssh/ec2-user.pem
+
+Step 3:
+
+After logining to the server, execute the follow commands to install needed packages:
+
+1. yum install -y autoconf automake m4 gcc-c++ ed bison flex git wget
+
+2. git clone https://github.com/jianlirong/tpch-dbgen.git
+
+3. git checkout postgres-dbgen
+
+4. make
+
+5. cd <another-directory>; wget https://bootstrap.pypa.io/get-pip.py
+
+6. python get-pip.py
+
+7. pip install awscli
+
+8. aws configure: <access_key_id, access_key_secret, region(us-west-2)>
+
+9. allocate a new volume (st1) of 500G capacity, and attach the volume the instance which is just started:
+	(a) (echo n; echo p; echo 1; echo; echo; echo w) | fdisk ${dev}
+	(b) mkfs -t ext4 ${dev}1
+	(c) mkdir -p /root/data
+	(d) mount -o rw ${dev}1 /root/data/
+
+10. cd /root/data; ../tpch-dbgen/dbgen -b ../tpch-dbgen/dists.dss -s 100
+
+11. split some large files into 32 files in individual folders and tgz those files
+
+	rm -rf result
+	mkdir result
+	for filename in x*;do
+		tar -czvf result/$filename.tgz $filename
+		rm -rf $filename
+	done
+	mv result/*.tgz .
+	rm -rf result
+
+
+12. aws configure set default.s3.max_concurrent_requests 100
+
+13. aws s3 sync /root/data/ s3://lirong-test/tpch-100g/
+
+14. for each table (folder), run the following command:
+
+aws s3 sync /root/data/nation/ s3://lirong-test/tpch-100g/nation/
+aws s3 sync /root/data/region/ s3://lirong-test/tpch-100g/region/
+aws s3 sync /root/data/part/ s3://lirong-test/tpch-100g/part/
+aws s3 sync /root/data/supplier/ s3://lirong-test/tpch-100g/supplier/
+aws s3 sync /root/data/partsupp/ s3://lirong-test/tpch-100g/partsupp/
+aws s3 sync /root/data/customer/ s3://lirong-test/tpch-100g/customer/
+aws s3 sync /root/data/orders/ s3://lirong-test/tpch-100g/orders/
+aws s3 sync /root/data/lineitem/ s3://lirong-test/tpch-100g/lineitem/
+
+15. copy the files into Redshift
+
+copy nation from 's3://lirong-test/tpch-100g/nation.manifest' 
+
+copy region from 's3://lirong-test/tpch-100g/region.manifest' 
+
+copy part from 's3://lirong-test/tpch-100g/part.manifest' 
+
+copy supplier from 's3://lirong-test/tpch-100g/supplier.manifest' 
+
+copy partsupp from 's3://lirong-test/tpch-100g/partsupp.manifest' 
+
+copy customer from 's3://lirong-test/tpch-100g/customer.manifest' 
+
+copy orders from 's3://lirong-test/tpch-100g/orders.manifest' 
+
+copy lineitem from 's3://lirong-test/tpch-100g/lineitem.manifest' 
