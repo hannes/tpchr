@@ -2,3 +2,10 @@
 dbgen
 qgen
 *.tbl
+*.bkp
+*.swp
+Makefile
+makefile
+*~
+\#\#*
+gmon.out
