@@ -44,7 +44,7 @@
 #define VTAG            ':'          /* flags a variable substitution */
 #define ofp             stdout       /* make the routine a filter */
 #define QDIR_TAG        "DSS_QUERY"  /* variable to point to queries */
-#define QDIR_DFLT       "."          /* and its default */
+#define QDIR_DFLT       "queries"    /* and its default */
 
 /*
  * database portability defines
