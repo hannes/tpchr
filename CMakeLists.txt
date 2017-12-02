@@ -13,6 +13,8 @@ set_property(CACHE Machine PROPERTY STRINGS ATT DOS HP IBM ICL MVS SGI SUN U2200
 set(Workload TPCH CACHE STRING "Choice of benchmark / query workload")
 set_property(CACHE Workload PROPERTY STRINGS TPCH)
 
+set(SeparatorAtEndOfLine ON CACHE BOOL "Print a separator after the last field of each generated table file line?")
+
 add_executable(dbgen
 	bcd2.c
 	bm_utils.c
@@ -40,20 +42,25 @@ add_executable(qgen
 )
 
 set_property(
-	TARGET 
-		dbgen qgen 
-	APPEND PROPERTY COMPILE_DEFINITIONS 
+	TARGET dbgen qgen
+	APPEND PROPERTY COMPILE_DEFINITIONS
 		DBNAME="dss"
 		${Machine}
 		${Database}
 		${Workload}
 		RNG_TEST
 		FILE_OFFSET_BITS=64
-) 
+)
+
+if (NOT SeparatorAtEndOfLine)
+	set_property(
+		TARGET dbgen qgen
+		APPEND PROPERTY COMPILE_DEFINITIONS EOL_HANDLING
+	)
+endif()
 
 set_property(
-	TARGET
-		dbgen qgen
+	TARGET dbgen qgen
 	APPEND PROPERTY COMPILE_OPTIONS
 		-Wall
 )
