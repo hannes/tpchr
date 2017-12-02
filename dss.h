@@ -110,10 +110,6 @@
 #define MIN(A,B)  ( (A) < (B) ? (A) : (B))
 
 #define INTERNAL_ERROR(p)  {fprintf(stderr,"%s", p);abort();}
-#define LN_CNT  4
-static char lnoise[4] = {'|', '/', '-', '\\' };
-#define LIFENOISE(n, var)	\
-	if (verbose > 0) fprintf(stderr, "%c\b", lnoise[(var%LN_CNT)])
 
 #define MALLOC_CHECK(var) \
     if ((var) == NULL) \

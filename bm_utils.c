@@ -560,7 +560,7 @@ DSS_HUGE
 set_state(int table, long sf, long procs, long step, DSS_HUGE *extra_rows)
 {
     int i;
-	DSS_HUGE rowcount, remainder, result;
+	DSS_HUGE rowcount, result;
 	
     if (sf == 0 || step == 0)
         return(0);

@@ -38,12 +38,6 @@
 /* function protypes */
 DSS_HUGE            NextRand    PROTO((DSS_HUGE));
 DSS_HUGE            UnifInt     PROTO((DSS_HUGE, DSS_HUGE, long));
-
-static long     nA = 16807;     /* the multiplier */
-static long     nM = 2147483647;/* the modulus == 2^31 - 1 */
-static long     nQ = 127773;    /* the quotient nM / nA */
-static long     nR = 2836;      /* the remainder nM % nA */
-
 double   dM = 2147483647.0;
 
 /*

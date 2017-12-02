@@ -96,7 +96,7 @@ void	permute(long *a, int c, long s)
 {
     int i;
     static DSS_HUGE source;
-    static long *set, temp;
+    static long temp;
     
 	if (a != (long *)NULL)
 	{
@@ -114,7 +114,6 @@ void	permute(long *a, int c, long s)
 
 void	permute_dist(distribution *d, long stream)
 {
-	static distribution *dist = NULL;
 	int i;
 	
 	if (d != NULL)

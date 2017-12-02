@@ -201,8 +201,7 @@ UnifInt(DSS_HUGE nLow, DSS_HUGE nHigh, long nStream)
 
 {
     double          dRange;
-    DSS_HUGE            nTemp,
-		nRange;
+    DSS_HUGE            nTemp;
     int32_t	nLow32 = (int32_t)nLow,
 		nHigh32 = (int32_t)nHigh;
 	
@@ -212,12 +211,10 @@ UnifInt(DSS_HUGE nLow, DSS_HUGE nHigh, long nStream)
 	if ((nHigh == MAX_LONG) && (nLow == 0))
 	{
 		dRange = DOUBLE_CAST (nHigh32 - nLow32 + 1);
-		nRange = nHigh32 - nLow32 + 1;
 	}
 	else
 	{
 		dRange = DOUBLE_CAST (nHigh - nLow + 1);
-		nRange = nHigh - nLow + 1;
 	}
 
     Seed[nStream].value = NextRand(Seed[nStream].value);

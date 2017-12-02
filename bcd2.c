@@ -148,7 +148,7 @@ bcd2_mul(long *bcd_low, long *bcd_high, long multiplier)
     carry = 0;
     for (ldigit=0; ldigit < 14; ldigit++)
         {
-        m1 = GET_DIGIT(ldigit, m_lo, m_hi); 
+        m1 = GET_DIGIT(ldigit, m_lo, m_hi);
         carry = 0;
         for (udigit=0; udigit < 14; udigit++)
             {
@@ -163,11 +163,14 @@ bcd2_mul(long *bcd_low, long *bcd_high, long multiplier)
             carry = res / 10;
             res %= 10;
             if (udigit + ldigit < 14)
+                {
                 SET_DIGIT(res, udigit + ldigit, bcd_low, bcd_high);
+                }
             }
         }
     return(carry);
 }
+
 
 int
 bcd2_div(long *bcd_low, long *bcd_high, long divisor)

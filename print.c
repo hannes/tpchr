@@ -395,7 +395,7 @@ pr_drange(int tbl, DSS_HUGE min, DSS_HUGE cnt, long num)
     static int  last_num = 0;
     static FILE *dfp = NULL;
     DSS_HUGE child = -1;
-    DSS_HUGE start, last, new;
+    DSS_HUGE new;
 
 	static DSS_HUGE rows_per_segment=0;
 	static DSS_HUGE rows_this_segment=0;
@@ -411,8 +411,6 @@ pr_drange(int tbl, DSS_HUGE min, DSS_HUGE cnt, long num)
 		rows_this_segment=0;
         }
 
-    start = MK_SPARSE(min, num/ (10000 / UPD_PCT));
-    last = start - 1;
     for (child=min; cnt > 0; child++, cnt--)
 	{
 		new = MK_SPARSE(child, num/ (10000 / UPD_PCT));
@@ -433,8 +431,6 @@ pr_drange(int tbl, DSS_HUGE min, DSS_HUGE cnt, long num)
 		PR_STRT(dfp);
 		PR_HUGE_LAST(dfp, &new);
 		PR_END(dfp);
-		start = new;
-		last = new;
 	}
     
     return(0);
