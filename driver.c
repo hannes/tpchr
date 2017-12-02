@@ -365,7 +365,7 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
 		row_stop(tnum);
 		if (set_seeds && (i % tdefs[tnum].base) < 2)
 		{
-			printf("\nSeeds for %s at rowcount %ld\n", tdefs[tnum].comment, i);
+			printf("\nSeeds for %s at rowcount " HUGE_FORMAT "\n", tdefs[tnum].comment, i);
 			dump_seeds(tnum);
 		}
 	}
