@@ -4,15 +4,14 @@ project(tpch-dbgen # TPC-H benchmark data (and query) generator utilities
 	VERSION 2.17.3 # taken from the TPC-H benchmark release version
 	LANGUAGES C)
 
-# Relevant values for DATABASE are:
-# INFORMIX, DB2, TDAT (Teradata), SQLSERVER, SYBASE, ORACLE, VECTORWISE
-set(DATABASE DB2 CACHE STRING "DBMS dialect to target with the qgen query generator")
-# Relevant values for MACHINE are:
-# ATT, DOS, HP, IBM, ICL, MVS, SGI, SUN, U2200, VMS, LINUX, WIN32, MAC
-set(MACHINE LINUX CACHE STRING "Machine type")
-# Relevant values for MACHINE are:
-# TPCH
-set(WORKLOAD TPCH CACHE STRING "Workload")
+set(Database "DB2" CACHE STRING "DBMS dialect to target with the qgen query generator")
+set_property(CACHE Database PROPERTY STRINGS INFORMIX DB2 TDAT SQLSERVER SYBASE ORACLE VECTORWISE)
+
+set(Machine LINUX CACHE STRING "Machine type")
+set_property(CACHE Machine PROPERTY STRINGS ATT DOS HP IBM ICL MVS SGI SUN U2200 VMS LINUX WIN32 MAC)
+
+set(Workload TPCH CACHE STRING "Choice of benchmark / query workload")
+set_property(CACHE Workload PROPERTY STRINGS TPCH)
 
 add_executable(dbgen
 	bcd2.c
@@ -45,10 +44,16 @@ set_property(
 		dbgen qgen 
 	APPEND PROPERTY COMPILE_DEFINITIONS 
 		DBNAME="dss"
-		${MACHINE}
-		${DATABASE}
-		${WORKLOAD}
+		${Machine}
+		${Database}
+		${Workload}
 		RNG_TEST
 		FILE_OFFSET_BITS=64
 ) 
- 
+
+set_property(
+	TARGET
+		dbgen qgen
+	APPEND PROPERTY COMPILE_OPTIONS
+		-Wall
+)
