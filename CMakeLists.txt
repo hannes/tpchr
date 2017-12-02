@@ -60,4 +60,5 @@ target_compile_definitions(
 	-D${WORKLOAD}
 	-DRNG_TEST
 	-D_FILE_OFFSET_BITS=64
-) 
+)
+ 
