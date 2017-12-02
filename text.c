@@ -357,6 +357,7 @@ distribution nouns,
       np,
       vp;
 
+int 
 main()
 {
 	char prattle[401];

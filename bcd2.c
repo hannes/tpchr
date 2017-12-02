@@ -217,6 +217,7 @@ bcd2_cmp(long *low1, long *high1, long comp)
 #ifdef TEST_BCD
 #include <values.h>
 
+int
 main()
 {
 long bin, low_bcd, high_bcd;
@@ -252,5 +253,6 @@ bin = 0;
 bcd2_bin(&bin, high_bcd);
 bcd2_bin(&bin, low_bcd);
 printf( "%ld\n", bin);
+return 0;
 }
 #endif /* TEST */
