@@ -40,25 +40,15 @@ add_executable(qgen
 	varsub.c
 )
 
-target_compile_definitions(
-	dbgen
-	PUBLIC
-	-DDBNAME="dss"
-	-D${MACHINE}
-	-D${DATABASE}
-	-D${WORKLOAD}
-	-DRNG_TEST
-	-D_FILE_OFFSET_BITS=64
+set_property(
+	TARGET 
+		dbgen qgen 
+	APPEND PROPERTY COMPILE_DEFINITIONS 
+		DBNAME="dss"
+		${MACHINE}
+		${DATABASE}
+		${WORKLOAD}
+		RNG_TEST
+		FILE_OFFSET_BITS=64
 ) 
-
-target_compile_definitions(
-	qgen
-	PUBLIC
-	-DDBNAME="dss"
-	-D${MACHINE}
-	-D${DATABASE}
-	-D${WORKLOAD}
-	-DRNG_TEST
-	-D_FILE_OFFSET_BITS=64
-)
  
