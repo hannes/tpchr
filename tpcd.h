@@ -58,6 +58,17 @@
 #define SET_DBASE       ""
 #endif /* VECTORWISE */
 
+#ifdef POSTGRES
+#define GEN_QUERY_PLAN "EXPLAIN"
+#define START_TRAN "BEGIN;"
+#define END_TRAN "COMMIT;"
+#define SET_OUTPUT "\\o %s \n"
+#define SET_ROWCOUNT "LIMIT %d;"
+#define SET_DBASE "\\c %s \n"
+/* Note: Loading the generated tables into PostgreSQL may require */
+/* setting EOL_HANDLING */
+#endif
+
 #ifdef DB2
 #define GEN_QUERY_PLAN  "SET CURRENT EXPLAIN SNAPSHOT ON;"
 #define START_TRAN      ""
