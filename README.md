@@ -1,7 +1,4 @@
-This repository holds the data generation and query generation utilities for the TPC-H analytics benchmark for DBMSes:
-
-* The generation utility `dbgen` produces schema data in several flat table files, in a simple textual format, which can then be loaded into a DBMS for running the benchmark; it can theoretically skip this and load data directly into a DBMS, but that may not work so well. 
-* The query generation utility `qgen` produces query files which may be sent to a DBMS to actually carry out the benchmark.
+This repository holds the data generation and query generation utilities (`dbgen` and `qgen`) for the TPC-H analytics benchmark for DBMSes
 
 | Table of contents|
 |:----------------|
@@ -41,18 +38,18 @@ CMake will generate files (including a Makefile) which you can then use with you
 
 ## <a name="using">Using `dbgen` to generate schema data</a>
 
-The `dbgen` utility should be run from within the source folder (it can be run from elsewhere but you would need to copy the `dists.dss` file at least); typically you would also want to specify the size scale factor. Thus:
+Typically, dbgen is invoked with a specific scale factor, and it must be directed at the [`dists.dss`](https://github.com/eyalroz/tpch-dbgen/blob/master/dists.dss) file. Thus the command-line should look something like this:
 
-    $ ./dbgen -v -s 10 
+    $ /path/to/dbgen -v -s 10 -b /path/to/dists.dss
     
-will create the various table files (e.g. `customer.tbl`, `nation.tbl`, `region.tbl`, `supplier.tbl` and so on) in the current directory, with a scale factor of 10, i.e. 300,000 customer lines. Here are the first few lines of a resulting `customer.tbl`: 
+which will create the various table files (e.g. `customer.tbl`, `nation.tbl`, `region.tbl`, `supplier.tbl` and so on) in the current directory, with a scale factor of 10, i.e. 300,000 customer lines. Here are the first few lines of a resulting `customer.tbl`: 
 ```
 1|Customer#000000001|j5JsirBM9P|MOROCCO  0|MOROCCO|AFRICA|25-989-741-2988|BUILDING|
 2|Customer#000000002|487LW1dovn6Q4dMVym|JORDAN   1|JORDAN|MIDDLE EAST|23-768-687-3665|AUTOMOBILE|
 3|Customer#000000003|fkRGN8n|ARGENTINA7|ARGENTINA|AMERICA|11-719-748-3364|AUTOMOBILE|
 4|Customer#000000004|4u58h f|EGYPT    4|EGYPT|MIDDLE EAST|14-128-190-5944|MACHINERY|
 ```
-the fields are separated by a pipe character (`|`), and there's a trailing pipe at the end of the line - unless you set SeparatorAtEndOfLine to false.
+the fields are separated by a pipe character (`|`), and there's a trailing pipe at the end of the line - unless you set `SeparatorAtEndOfLine` option to `OFF`.
 
 After generating `.tbl` files for all tables, you should now either load them directly into your DBMS, or apply some textual processing on them.
 
