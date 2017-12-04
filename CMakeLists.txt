@@ -5,7 +5,7 @@ project(tpch-dbgen # TPC-H benchmark data (and query) generator utilities
 	LANGUAGES C)
 
 set(Database "DB2" CACHE STRING "DBMS dialect to target with the qgen query generator")
-set_property(CACHE Database PROPERTY STRINGS INFORMIX DB2 TDAT SQLSERVER SYBASE ORACLE VECTORWISE)
+set_property(CACHE Database PROPERTY STRINGS INFORMIX DB2 TDAT SQLSERVER SYBASE ORACLE VECTORWISE POSTGRES)
 
 set(Machine LINUX CACHE STRING "Machine type")
 set_property(CACHE Machine PROPERTY STRINGS ATT DOS HP IBM ICL MVS SGI SUN U2200 VMS LINUX WIN32 MAC)
