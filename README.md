@@ -5,7 +5,7 @@ This repository holds the data generation and query generation utilities for the
 
 | Table of contents|
 |:----------------|
-| ["What? _Another_ fork of tpch-dbgen? Why?"](#another-fork)<br>  [About the TPC-H benchmark)<br> [Building the generation utilities](#building)<br> [Using `dbgen` to generate data](#using)<br>|
+| ["What? _Another_ fork of tpch-dbgen? Why?"](#another-fork)<br>  [About the TPC-H benchmark](#about-tpch)<br> [Building the generation utilities](#building)<br> [Using `dbgen` to generate data](#using)<br>|
 
 ## <a name="another-fork">"What? _Another_ fork of tpch-dbgen? Why?"</a>
 
@@ -15,44 +15,29 @@ Now, there are several repositories on GitHub with such modifications of the off
 
 If you are the author of one of the other repositories - please [contact me](mailto:eyalroz@technion.ac.il) for better coordination of this effort.
 
-## <a name="about-ssb">About the TPC-H</a>
+## <a name="about-tpch">About the TPC-H benchmark</a>
 
-The TPC-H is an initiative of the [Transaction Processiong Council](http://www.tpc.org/), an industrial consortium with the major DBMS vendors as members, which is intended to standardize the performance benchmarking of DBMSes in various usage scenarios. It has had benchmarks named TPC-A, TPC-B, TPC-C and so on; some have long been deprecated and are irrelevant. You can read about the various actively-supported benchmarks [here](http://www.tpc.org/information/benchmarks.asp).
+TPC benchmark H is one of several benchmarks created and maintained by the [Transaction Processiong Council](http://www.tpc.org/) - TPC for short. The TPC, is industrial consortium with the major DBMS vendors as members, which is intended to standardize the performance benchmarking of DBMSes in various usage scenarios. Other TPC-H benchmarks have been named TPC-A, TPC-B, TPC-R, TPC-DS and so on; some are deprecated and no longer irrelevant. You can read about the actively-supported benchmarks [here](http://www.tpc.org/information/benchmarks.asp).
 
-Among the TPC benchmarks, TPC-H is intended for **Decision Support**, or in other words - analytic query processing capabilities of DBMSes. It follows a commercial busines scenario involving suppliers, customers, parts, suppliers of parts and orders of parts dispatched to clients, over the course of several business years (1992-1998). Its schema is not very complicated, but not trivial (e.g. it is not a "star schema"); and it has 22 queries ranging from simpler to relatively long and involved - although none of them utilizes more advanced or esoteric SQL features (such as window functions, UDFs and so on). It is in wide use both in its "proper" form - of sending random variants of the queries from the set to a running DBMS over the course of an hour - and in the "artificial" form of running individual queries on a cold DBMS.
+TPC-H is intended for benchmarking the **Decision Support** performance of a DBMS, or in other words - analytic query processing performance. It follows a commercial business scenario involving suppliers, customers, parts, suppliers of parts and orders of parts shipped to clients, over the course of several business years (1992-1998). Its schema is not very complicated, but not trivial either (e.g. it is not a "star schema"). It has 22 queries ranging from simpler to relatively long and involved - although none of them utilizes more advanced or esoteric SQL features (such as window functions, UDFs and so on). It is in wide use both in its "proper" form - of sending random variants of the queries from the set to a running DBMS over the course of an hour - and in the "artificial" form of running individual queries on a cold DBMS.
 
 ## <a name="building">Building the generation utility</a>
 
-The build process is not completely automated, unfortunately (an inheritance from the TPC-H dbgen utility), and comprises of two phases: Semi-manually generating a [Makefile](https://en.wikipedia.org/wiki/Makefile), then an automated build using that Makefile.
+The original, TPC-distributed version of the code in this repository required manually creating a `Makefile` from am template (`makefile.suite`) - that is **not necessary** with this repository.
 
-#### Generating a Makefile
+The build process is automated using [Kitware CMake](https://www.cmake.org/). There are several settings which you must make before building, which CMake will guide you through if you [invoke it properly](https://cmake.org/runningcmake/) - that is, using the GUI or terminal-based user interface that presents the configuration options for you to choose from.
 
-Luckily, the Makefile is all-but-written for you, in the form of a template, [`makefile.suite`](https://github.com/eyalroz/tpch-dbgen/blob/master/makefile.suite). What remains for you to do is (assuming a non-Windows system):
+Following is an explanation of the values you would need to set using the GUI or TUI:
 
-1. Copy `makefile.suite` to `Makefile`
-2. Set the values of the variables `DATABASE`, `MACHINE`, `WORKLOAD` and `CC`:
 
-|Variable   |How to set it?   | List of options |
-|-----------|-----------------|-----------------|
-| `DATABASE`  | Use `DB2` if you can't tell what you should use; try one of the other options if that's the DBMS you're going to benchmark with  | `INFORMIX`, `DB2`, `TDAT`, `SQLSERVER`, `SYBASE` |
-| `MACHINE`  | According to the platform/operating system you're using  | `ATT`, `DOS`, `HP`, `IBM`, `ICL`, `MVS`, `SGI`, `SUN`, `U2200`, `VMS`, `LINUX`, `MAC` |
-| `WORKLOAD`  | Use `SSB`   | `SSB`, `TPCH`, `TPCR` (but better not try the last two)
-| `CC`  |  Use the base name of your system's C compiler (assuming it's in the search path)  | N/A |
+|Variable     | Used by     | How to set it?   |List of options |
+|-------------|-------------|--------|-----------------|
+| `Database`  | qgen  | Select the name of the DBMS closest to the one you're benchmarking in terms of syntax. If unsure, choose `DB2` |  `INFORMIX` `DB2` `TDAT` `SQLSERVER` `SYBASE` `ORACLE` `VECTORWISE` `POSTGRES` |
+| `Platform`  | dbgen, qgen | According to the platform/operating system you're using  | `ATT`, `DOS`, `HP`, `IBM`, `ICL`, `MVS`, `SGI`, `SUN`, `U2200`, `VMS`, `LINUX`, `MAC` |
+| `Workload`  | dbgen, qgen | Use `TPCH`   | 
+| `SeparatorAtEndOfLine`  | dbgen  | Set to OFF if your DBMS doesn't support loading the data if it has a separator character at the end of each line | `ON` or `OFF` (it's a boolean really) |
 
-3. Set the values of the object file suffix variable (`OBJ`), exeutable file prefix (`EXE`) and of the libraries necessary to compile TPCH-DBGEN (`LIBS`).
-
-#### Building using the Makefile
-
-Your system should have the following software:
-
-* GNU Make (which is standard on essentially all Unix-like systems today, specifically on Linux distributions), or Microsoft's NMake (which comes bundled with MS Visual Studio).
-* A C language compiler (C99/C2011 support is not necessary) and linker. GNU's compiler collection (gcc) is know to work on Linux; and MSVC probably works on Windows. clang, ICC or others should be ok as well.
-
-Now, simply execute `make -C /path/to/your/tpch-dbgen`; on Windows, you will need to be in the repository's directory and execute `nmake`. If you're in a terminal/command prompt session, the output should have several lines looking something like this:
-```
-gcc -O -DDBNAME=\"dss\" -DLINUX -DDB2  -DSSB    -c -o bm_utils.o bm_utils.c
-```
-and finally, the executable files `dbgen` and `qgen` (or `dbgen.exe` and `qgen.exe` on Windows) should now appear in the source folder.
+CMake will generate files (including a Makefile) which you can then use with your platform-specific build tools, e.g. NMake for Windows or [GNU Make](https://www.gnu.org/software/make/) on Unix-like systems. If you're not sure how to use them, consult the documentation or Goole.
 
 ## <a name="using">Using `dbgen` to generate schema data</a>
 
@@ -67,7 +52,7 @@ will create the various table files (e.g. `customer.tbl`, `nation.tbl`, `region.
 3|Customer#000000003|fkRGN8n|ARGENTINA7|ARGENTINA|AMERICA|11-719-748-3364|AUTOMOBILE|
 4|Customer#000000004|4u58h f|EGYPT    4|EGYPT|MIDDLE EAST|14-128-190-5944|MACHINERY|
 ```
-the fields are separated by a pipe character (`|`), and there's a trailing pipe at the end of the line. 
+the fields are separated by a pipe character (`|`), and there's a trailing pipe at the end of the line - unless you set SeparatorAtEndOfLine to false.
 
 After generating `.tbl` files for all tables, you should now either load them directly into your DBMS, or apply some textual processing on them.
 
