@@ -1,4 +1,6 @@
-This repository holds the data generation and query generation utilities (`dbgen` and `qgen`) for the TPC-H analytics benchmark for DBMSes
+# TPC-H benchmark data & queries generation utilities - dbgen & qgen
+
+This repository holds the data generation and query generation utilities (`dbgen` and `qgen` respectively) for the TPC-H analytics benchmark for DBMSes.
 
 | Table of contents|
 |:----------------|
