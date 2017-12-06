@@ -171,7 +171,7 @@ char *cptr,
 
     rowcnt = rowcnt_dflt[qnum];
     varsub(qnum, 0, flags); /* set the variables */
-    if (flags & DFLT_NUM)
+    if ((flags & DFLT_NUM) && (strlen(SET_ROWCOUNT) > 0))
         fprintf(ofp, SET_ROWCOUNT, rowcnt);
     while (fgets(line, BUFSIZ, qfp) != NULL)
         {
@@ -193,7 +193,7 @@ char *cptr,
                     break;
                 case 'c':
                 case 'C':
-                    if (flags & DBASE)
+                    if ((flags & DBASE) && (strlen(SET_DBASE) > 0))
                         fprintf(ofp, SET_DBASE, db_name);
                     cptr++;
                     break;
@@ -209,7 +209,8 @@ char *cptr,
                         {
                         rowcnt=atoi(++cptr);
                         while (isdigit(*cptr) || *cptr == ' ') cptr++;
-                        fprintf(ofp, SET_ROWCOUNT, rowcnt);
+                        if (strlen(SET_ROWCOUNT) > 0)
+                            fprintf(ofp, SET_ROWCOUNT, rowcnt);
                         }
                     continue;
                 case 'o':
