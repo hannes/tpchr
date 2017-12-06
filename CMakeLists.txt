@@ -4,16 +4,16 @@ project(tpch-dbgen # TPC-H benchmark data (and query) generator utilities
 	VERSION 2.17.3 # taken from the TPC-H benchmark release version
 	LANGUAGES C)
 
-set(Database "DB2" CACHE STRING "DBMS dialect to target with the qgen query generator")
-set_property(CACHE Database PROPERTY STRINGS INFORMIX DB2 TDAT SQLSERVER SYBASE ORACLE VECTORWISE POSTGRES)
+set(DATABASE "DB2" CACHE STRING "Command language dialect to target with the qgen query generator (\"DATABASE\"")
+set_property(CACHE DATABASE PROPERTY STRINGS INFORMIX DB2 TDAT SQLSERVER SYBASE ORACLE VECTORWISE POSTGRES)
 
-set(Machine LINUX CACHE STRING "Machine type")
-set_property(CACHE Machine PROPERTY STRINGS ATT DOS HP IBM ICL MVS SGI SUN U2200 VMS LINUX WIN32 MAC)
+set(MACHINE LINUX CACHE STRING "Platform to target (\"MACHINE\")")
+set_property(CACHE MACHINE PROPERTY STRINGS ATT DOS HP IBM ICL MVS SGI SUN U2200 VMS LINUX WIN32 MAC)
 
-set(Workload TPCH CACHE STRING "Choice of benchmark / query workload")
-set_property(CACHE Workload PROPERTY STRINGS TPCH)
+set(WORKLOAD TPCH CACHE STRING "Choice of benchmark / query workload (\"WORKLOAD\")")
+set_property(CACHE WORKLOAD PROPERTY STRINGS TPCH)
 
-set(SeparatorAtEndOfLine ON CACHE BOOL "Print a separator after the last field of each generated table file line?")
+set(EOL_HANDLING OFF CACHE BOOL "Skip separator after the last field in generated lines?")
 
 add_executable(dbgen
 	bcd2.c
@@ -45,14 +45,14 @@ set_property(
 	TARGET dbgen qgen
 	APPEND PROPERTY COMPILE_DEFINITIONS
 		DBNAME="dss"
-		${Machine}
-		${Database}
-		${Workload}
+		${MACHINE}
+		${DATABASE}
+		${WORKLOAD}
 		RNG_TEST
 		FILE_OFFSET_BITS=64
 )
 
-if (NOT SeparatorAtEndOfLine)
+if (EOL_HANDLING)
 	set_property(
 		TARGET dbgen qgen
 		APPEND PROPERTY COMPILE_DEFINITIONS EOL_HANDLING
