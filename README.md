@@ -32,7 +32,7 @@ Following is an explanation of the values you would need to set using the GUI or
 |Variable     | Used by     | How to set it?   |List of options |
 |-------------|-------------|--------|-----------------|
 | `Database`  | qgen  | Select the name of the DBMS closest to the one you're benchmarking in terms of syntax. If unsure, choose `DB2` |  `INFORMIX` `DB2` `TDAT` `SQLSERVER` `SYBASE` `ORACLE` `VECTORWISE` `POSTGRES` |
-| `Platform`  | dbgen, qgen | According to the platform/operating system you're using  | `ATT`, `DOS`, `HP`, `IBM`, `ICL`, `MVS`, `SGI`, `SUN`, `U2200`, `VMS`, `LINUX`, `MAC` |
+| `Platform`  | dbgen, qgen | According to the platform/operating system you're using  | `ATT`, `HP`, `IBM`, `ICL`, `MVS`, `SGI`, `SUN`, `U2200`, `VMS`, `LINUX`, `MAC` |
 | `Workload`  | dbgen, qgen | Use `TPCH`   |
 | `SeparatorAtEndOfLine`  | dbgen  | Set to OFF if your DBMS doesn't support loading the data if it has a separator character at the end of each line | `ON` or `OFF` (it's a boolean really) |
 

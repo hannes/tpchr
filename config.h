@@ -21,7 +21,6 @@
  *   MACHINE defines
  *   ==========
  *   ATT        -- getopt() handling
- *   DOS        -- disable all multi-user functionality/dependency
  *   HP         -- posix source inclusion differences
  *   IBM        -- posix source inclusion differences
  *   SGI        -- getopt() handling
@@ -41,11 +40,6 @@
  *   ================
  *   TPCH              -- make will create TPCH (set in makefile)
  */
-
-#ifdef DOS
-#define PATH_SEP	'\\'
-#else
-
 
 #ifdef ATT
 #define STDLIB_HAS_GETOPT
@@ -161,8 +155,6 @@
 #define SPAWN   fork
 #define WAIT(res, pid) wait(res)
 #endif /* DEFAULT */
-
-#endif /* DOS */
 
 #ifndef PATH_SEP
 #define PATH_SEP '/'
