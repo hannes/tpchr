@@ -33,7 +33,7 @@ Following is an explanation of the values you would need to set using the GUI or
 |-------------|-------------|--------|-----------------|
 | `Database`  | qgen  | Select the name of the DBMS closest to the one you're benchmarking in terms of syntax. If unsure, choose `DB2` |  `INFORMIX` `DB2` `TDAT` `SQLSERVER` `SYBASE` `ORACLE` `VECTORWISE` `POSTGRES` |
 | `Platform`  | dbgen, qgen | According to the platform/operating system you're using  | `ATT`, `DOS`, `HP`, `IBM`, `ICL`, `MVS`, `SGI`, `SUN`, `U2200`, `VMS`, `LINUX`, `MAC` |
-| `Workload`  | dbgen, qgen | Use `TPCH`   | 
+| `Workload`  | dbgen, qgen | Use `TPCH`   |
 | `SeparatorAtEndOfLine`  | dbgen  | Set to OFF if your DBMS doesn't support loading the data if it has a separator character at the end of each line | `ON` or `OFF` (it's a boolean really) |
 
 CMake will generate files (including a Makefile) which you can then use with your platform-specific build tools, e.g. NMake for Windows or [GNU Make](https://www.gnu.org/software/make/) on Unix-like systems. If you're not sure how to use them, consult the documentation or Goole.
@@ -43,8 +43,8 @@ CMake will generate files (including a Makefile) which you can then use with you
 Typically, dbgen is invoked with a specific scale factor, and it must be directed at the [`dists.dss`](https://github.com/eyalroz/tpch-dbgen/blob/master/dists.dss) file. Thus the command-line should look something like this:
 
     $ /path/to/dbgen -v -s 10 -b /path/to/dists.dss
-    
-which will create the various table files (e.g. `customer.tbl`, `nation.tbl`, `region.tbl`, `supplier.tbl` and so on) in the current directory, with a scale factor of 10, i.e. 300,000 customer lines. Here are the first few lines of a resulting `customer.tbl`: 
+
+which will create the various table files (e.g. `customer.tbl`, `nation.tbl`, `region.tbl`, `supplier.tbl` and so on) in the current directory, with a scale factor of 10, i.e. 300,000 customer lines. Here are the first few lines of a resulting `customer.tbl`:
 ```
 1|Customer#000000001|j5JsirBM9P|MOROCCO  0|MOROCCO|AFRICA|25-989-741-2988|BUILDING|
 2|Customer#000000002|487LW1dovn6Q4dMVym|JORDAN   1|JORDAN|MIDDLE EAST|23-768-687-3665|AUTOMOBILE|
