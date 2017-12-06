@@ -1,27 +1,4 @@
 /*
-* $Id: qgen.c,v 1.3 2005/10/28 02:54:35 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: qgen.c,v $
-* Revision 1.3  2005/10/28 02:54:35  jms
-* add release.h changes
-*
-* Revision 1.2  2005/01/03 20:08:59  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:47  jms
-* re-establish external server
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* recreation after CVS crash
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
-/*
  * qgen.c -- routines to convert query templates to executable query
  *           text for TPC-H and TPC-R
  */

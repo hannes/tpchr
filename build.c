@@ -1,37 +1,4 @@
-/*
- * $Id: build.c,v 1.5 2009/06/28 14:01:08 jms Exp $
- * 
- * Revision History =================== $Log: build.c,v $
- * Revision History =================== Revision 1.5  2009/06/28 14:01:08  jms
- * Revision History =================== bug fix for DOP
- * Revision History =================== Revision 1.4
- * 2005/10/28 02:56:22  jms add platform-specific printf formats to allow for
- * DSS_HUGE data type
- * 
- * Revision 1.3  2005/10/14 23:16:54  jms fix for answer set compliance
- * 
- * Revision 1.2  2005/01/03 20:08:58  jms change line terminations
- * 
- * Revision 1.1.1.1  2004/11/24 23:31:46  jms re-establish external server
- * 
- * Revision 1.3  2004/04/07 20:17:29  jms bug #58 (join fails between
- * order/lineitem)
- * 
- * Revision 1.2  2004/01/22 05:49:29  jms AIX porting (AIX 5.1)
- * 
- * Revision 1.1.1.1  2003/08/08 21:35:26  jms recreation after CVS crash
- * 
- * Revision 1.3  2003/08/08 21:35:26  jms first integration of rng64 for
- * o_custkey and l_partkey
- * 
- * Revision 1.2  2003/08/07 17:58:34  jms Convery RNG to 64bit space as
- * preparation for new large scale RNG
- * 
- * Revision 1.1.1.1  2003/04/03 18:54:21  jms initial checkin
- * 
- * 
- */
-/* stuff related to the customer table */
+
 #include <stdio.h>
 #include <string.h>
 #ifndef VMS

@@ -1,35 +1,3 @@
-/*
-* $Id: dsstypes.h,v 1.3 2005/10/28 02:57:04 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: dsstypes.h,v $
-* Revision 1.3  2005/10/28 02:57:04  jms
-* allow for larger names in customer table
-*
-* Revision 1.2  2005/01/03 20:08:58  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:46  jms
-* re-establish external server
-*
-* Revision 1.3  2004/04/07 20:17:29  jms
-* bug #58 (join fails between order/lineitem)
-*
-* Revision 1.2  2004/01/22 05:49:29  jms
-* AIX porting (AIX 5.1)
-*
-* Revision 1.1.1.1  2003/08/07 17:58:34  jms
-* recreation after CVS crash
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
  /* 
  * general definitions and control information for the DSS data types
  * and function prototypes

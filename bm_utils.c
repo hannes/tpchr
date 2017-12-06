@@ -1,42 +1,4 @@
 /*
-* $Id: bm_utils.c,v 1.4 2006/04/12 18:00:55 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: bm_utils.c,v $
-* Revision 1.4  2006/04/12 18:00:55  jms
-* add missing parameter to call to gen_seed
-*
-* Revision 1.3  2005/10/14 23:16:54  jms
-* fix for answer set compliance
-*
-* Revision 1.2  2005/01/03 20:08:58  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:46  jms
-* re-establish external server
-*
-* Revision 1.3  2004/02/18 14:05:53  jms
-* porting changes for LINUX and 64 bit RNG
-*
-* Revision 1.2  2004/01/22 05:49:29  jms
-* AIX porting (AIX 5.1)
-*
-* Revision 1.1.1.1  2003/08/08 21:35:26  jms
-* recreation after CVS crash
-*
-* Revision 1.3  2003/08/08 21:35:26  jms
-* first integration of rng64 for o_custkey and l_partkey
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
- /*
  *
  * Various routines that handle distributions, value selections and
  * seed value management for the DSS benchmark. Current functions:

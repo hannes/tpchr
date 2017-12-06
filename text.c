@@ -1,39 +1,4 @@
 /*
-* $Id: text.c,v 1.6 2006/07/31 17:23:09 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: text.c,v $
-* Revision 1.6  2006/07/31 17:23:09  jms
-* fix to parallelism problem
-*
-* Revision 1.5  2006/05/18 23:50:00  jms
-* commit text generation change with larger buffer
-*
-* Revision 1.4  2006/05/16 16:26:51  jms
-* remove calls to FAKE_V_STR
-*
-* Revision 1.3  2006/05/16 15:55:58  jms
-* first cut to Meikel
-*
-* Revision 1.2  2005/01/03 20:08:59  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:47  jms
-* re-establish external server
-*
-* Revision 1.1.1.1  2003/08/07 17:58:34  jms
-* recreation after CVS crash
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
-/*
  * text.c --- pseaudo text generator for use in DBGEN 2.0
  *
  * Defined Routines:
