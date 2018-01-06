@@ -49,7 +49,7 @@ set_property(
 		${DATABASE}
 		${WORKLOAD}
 		RNG_TEST
-		FILE_OFFSET_BITS=64
+		_FILE_OFFSET_BITS=64
 )
 
 if (EOL_HANDLING)
