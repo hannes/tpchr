@@ -313,7 +313,7 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
   		case ORDER_LINE: 
 			mk_order (i, &o, upd_num % 10000);
 
-		  if (insert_segments  && (upd_num > 0))
+		  if (insert_segments  && (upd_num > 0)) {
 			if((upd_num / 10000) < residual_rows)
 				{
 				if((++rows_this_segment) > rows_per_segment) 
@@ -321,8 +321,7 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
 					rows_this_segment=0;
 					upd_num += 10000;					
 					}
-				}
-			else
+				} else
 				{
 				if((++rows_this_segment) >= rows_per_segment) 
 					{
@@ -330,7 +329,7 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
 					upd_num += 10000;
 					}
 				}
-
+		  }
 			if (set_seeds == 0)
 				tdefs[tnum].loader(&o, upd_num);
 			break;

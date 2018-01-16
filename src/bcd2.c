@@ -163,7 +163,7 @@ bcd2_mul(long *bcd_low, long *bcd_high, long multiplier)
             carry = res / 10;
             res %= 10;
             if (udigit + ldigit < 14)
-                SET_DIGIT(res, udigit + ldigit, bcd_low, bcd_high);
+                {SET_DIGIT(res, udigit + ldigit, bcd_low, bcd_high)};
             }
         }
     return(carry);

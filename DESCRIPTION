@@ -1,0 +1,10 @@
+Package: tpchr
+Version: 0.0.1
+Title: R version of TPC-H's dbgen
+Author: Hannes Muehleisen [aut, cre]
+Maintainer: Hannes Muehleisen <hannes@cwi.nl>
+Description: TODO
+License: MPL (== 2.0)
+URL: https://github.com/hannesmuehleisen/tpchr
+Depends: R (>= 3.2.0)
+Collate: tpch.R
