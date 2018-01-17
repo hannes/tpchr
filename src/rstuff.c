@@ -403,7 +403,6 @@ static SEXP dbgen_R(SEXP sf) {
 	off_region = 0;
 	off_supp = 0;
 
-
 	SEXP dateClass = PROTECT(mkString("Date"));
 	if (!dateClass) {
 		error("memory allocation");
