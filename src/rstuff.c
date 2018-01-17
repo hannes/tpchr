@@ -205,36 +205,74 @@ static int append_supp(supplier_t *supp, int mode) {
 
 }
 
-static SEXP create_df(size_t ncol, size_t nrow, char** names_arr,
-		SEXPTYPE* types_arr) {
-	df_region = PROTECT(NEW_LIST(ncol));
-	SET_NAMES(df_region, PROTECT(NEW_CHARACTER(ncol)));
-	SET_CLASS(df_region, mkString("data.frame"));
-	for (size_t n = 0; n < ncol; n++) {
-		SET_STRING_ELT(GET_NAMES(df_region), n,
-				mkCharCE(names_arr[n], CE_NATIVE));
-		switch (types_arr[n]) {
-		case INTSXP:
-			SET_VECTOR_ELT(df_region, n, NEW_INTEGER(nrow));
-			break;
-		case STRSXP:
-			SET_VECTOR_ELT(df_region, n, NEW_CHARACTER(nrow));
-			break;
-		case REALSXP:
-			SET_VECTOR_ELT(df_region, n, NEW_NUMERIC(nrow));
-			break;
-			//	default:
-			// TODO: complain
-		}
-	}
-
+static void set_df_len(SEXP s, size_t len) {
 	SEXP row_names;
 	PROTECT(row_names = allocVector(INTSXP, 2));
+	if (!row_names) {
+		UNPROTECT(1);
+		error("memory allocation");
+		return;
+	}
 	INTEGER(row_names)[0] = NA_INTEGER;
-	INTEGER(row_names)[1] = nrow;
-	setAttrib(df_region, R_RowNamesSymbol, row_names);
-	UNPROTECT(2); // names and df
-	return df_region;
+	INTEGER(row_names)[1] = (int) len;
+	setAttrib(s, R_RowNamesSymbol, row_names);
+	UNPROTECT(1);
+}
+
+#define DF_ADD_COL(constr) \
+		new_vec = PROTECT(constr(nrow)); \
+		if (!new_vec) { \
+			error("memory allocation"); \
+			UNPROTECT(2); \
+			return NULL; \
+		} \
+		SET_VECTOR_ELT(df, n, new_vec); \
+		UNPROTECT(1);
+
+static SEXP create_df(size_t ncol, size_t nrow, char** names_arr,
+		SEXPTYPE* types_arr) {
+	SEXP df = PROTECT(NEW_LIST(ncol));
+	SEXP names = PROTECT(NEW_CHARACTER(ncol));
+	SEXP class = PROTECT(mkString("data.frame"));
+
+	if (!df || !names || !class) {
+		UNPROTECT(3);
+		error("memory allocation");
+		return NULL;
+	}
+	SET_NAMES(df, names);
+	SET_CLASS(df, class);
+	UNPROTECT(2); // names and class
+
+	for (size_t n = 0; n < ncol; n++) {
+		SEXP name = PROTECT(RSTR(names_arr[n]));
+		if (!name) {
+			UNPROTECT(2); //df and name
+			error("memory allocation");
+			return NULL;
+		}
+		SET_STRING_ELT(names, n, name);
+		UNPROTECT(1);
+		SEXP new_vec = NULL;
+		switch (types_arr[n]) {
+		case INTSXP:
+			DF_ADD_COL(NEW_INTEGER)
+			break;
+		case STRSXP:
+			DF_ADD_COL(NEW_CHARACTER)
+			break;
+		case REALSXP:
+			DF_ADD_COL(NEW_NUMERIC)
+			break;
+		default:
+			UNPROTECT(1);
+			error("unknown type");
+			return NULL;
+		}
+	}
+	set_df_len(df, nrow);
+	UNPROTECT(1); // df
+	return df;
 }
 
 // 'inspired' by driver.c::main(). also, what a mess
@@ -289,12 +327,88 @@ static SEXP dbgen_R(SEXP sf) {
 	tdefs[NATION].base = nations.count;
 	tdefs[REGION].base = regions.count;
 
-	// setup the various data frames
+	// setup loaders
+	tdefs[NATION].loader     = append_nation;
+	tdefs[REGION].loader     = append_region;
+	tdefs[CUST].loader       = append_cust;
+	tdefs[SUPP].loader       = append_supp;
+	tdefs[PART_PSUPP].loader = append_part_psupp;
+	tdefs[ORDER_LINE].loader = append_order_line;
 
+	// setup the various data frames
+	{
+		char* names_arr[] = { "n_nationkey", "n_name", "n_regionkey",
+				"n_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, STRSXP, INTSXP, STRSXP };
+		df_nation = PROTECT(
+				create_df(4, tdefs[NATION].base, names_arr, types_arr));
+	}
+	{
+		char* names_arr[] = { "r_regionkey", "r_name", "r_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP };
+		df_region = PROTECT(
+				create_df(3, tdefs[REGION].base, names_arr, types_arr));
+	}
+	{
+		char* names_arr[] = { "c_custkey", "c_name", "c_address", "c_nationkey",
+				"c_phone", "c_acctbal", "c_mktsegment", "c_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
+				REALSXP, STRSXP, STRSXP };
+		df_cust = PROTECT(
+				create_df(8, tdefs[CUST].base * scale, names_arr, types_arr));
+	}
+	{
+		char* names_arr[] = { "s_suppkey", "s_name", "s_address", "s_nationkey",
+				"s_phone", "s_acctbal", "s_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
+				REALSXP, STRSXP };
+		df_supp = PROTECT(
+				create_df(7, tdefs[SUPP].base * scale, names_arr, types_arr));
+	}
+	{
+		char* names_arr[] =
+				{ "p_partkey", "p_name", "p_mfgr", "p_brand", "p_type",
+						"p_size", "p_container", "p_retailprice", "p_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, STRSXP, STRSXP, INTSXP,
+				STRSXP, REALSXP, STRSXP };
+		df_part = PROTECT(
+				create_df(9, tdefs[PART_PSUPP].base, names_arr, types_arr));
+	}
+	{
+		char* names_arr[] = { "ps_partkey", "ps_suppkey", "ps_availqty",
+				"ps_supplycost", "ps_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, REALSXP, STRSXP };
+		df_psupp = PROTECT(
+				create_df(5, tdefs[PART_PSUPP].base * SUPP_PER_PART, names_arr,
+						types_arr));
+	}
+	{
+		char* names_arr[] = { "o_orderkey", "o_custkey", "o_orderstatus",
+				"o_totalprice", "o_orderdate", "o_orderpriority", "o_clerk",
+				"o_shippriority", "o_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP, STRSXP,
+				STRSXP, STRSXP, INTSXP, STRSXP };
+		df_order = PROTECT(
+				create_df(9, tdefs[ORDER_LINE].base, names_arr, types_arr));
+	}
+	{
+		char* names_arr[] = { "l_orderkey", "l_partkey", "l_suppkey",
+				"l_linenumber", "l_quantity", "l_extendedprice", "l_discount",
+				"l_tax", "l_returnflag", "l_linestatus", "l_shipdate",
+				"l_commitdate", "l_receiptdate", "l_shipinstruct", "l_shipmode",
+				"l_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, INTSXP, INTSXP,
+				REALSXP, REALSXP, REALSXP, STRSXP, STRSXP, STRSXP, STRSXP,
+				STRSXP, STRSXP, STRSXP, STRSXP };
+		// overestimate lineitem length for allocation, set true length below
+		df_lineitem = PROTECT(
+				create_df(16, tdefs[ORDER_LINE].base * 4.5, names_arr,
+						types_arr));
+	}
 	/*
 	 * traverse the tables, invoking the appropriate data generation routine for any to be built
 	 */
-	for (i = PART; i <= REGION; i++)
+	for (i = PART; i <= REGION; i++) {
 		if (table & (1 << i)) {
 			minrow = 1;
 			if (i < NATION)
@@ -302,129 +416,33 @@ static SEXP dbgen_R(SEXP sf) {
 			else
 				rowcnt = tdefs[i].base;
 
-			if (i == NATION) {
-				char* names_arr[] = { "n_nationkey", "n_name", "n_regionkey",
-						"n_comment", 0 }; // all const
-				SEXPTYPE types_arr[] = { INTSXP, STRSXP, INTSXP, STRSXP };
-				tdefs[NATION].loader = append_nation;
-				df_nation = PROTECT(create_df(4, rowcnt, names_arr, types_arr));
-				// TODO: check allocations and protect
-			}
-
-			if (i == REGION) {
-				char* names_arr[] = { "r_regionkey", "r_name", "r_comment" };
-				SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP };
-				tdefs[REGION].loader = append_region;
-				df_region = PROTECT(create_df(3, rowcnt, names_arr, types_arr));
-				// TODO: check allocations and protect
-			}
-
-			if (i == CUST) {
-				char* names_arr[] = { "c_custkey", "c_name", "c_address",
-						"c_nationkey", "c_phone", "c_acctbal", "c_mktsegment",
-						"c_comment" };
-				SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
-						REALSXP, STRSXP, STRSXP };
-				tdefs[CUST].loader = append_cust;
-				df_cust = PROTECT(create_df(8, rowcnt, names_arr, types_arr));
-				// TODO: check allocations and protect
-			}
-
-			if (i == SUPP) {
-				char* names_arr[] = { "s_suppkey", "s_name", "s_address",
-						"s_nationkey", "s_phone", "s_acctbal", "s_comment" };
-				SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
-						REALSXP, STRSXP };
-				tdefs[SUPP].loader = append_supp;
-				df_supp = PROTECT(create_df(7, rowcnt, names_arr, types_arr));
-				// TODO: check allocations and protect
-			}
-
-			if (i == SUPP) {
-				char* names_arr[] = { "s_suppkey", "s_name", "s_address",
-						"s_nationkey", "s_phone", "s_acctbal", "s_comment" };
-				SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
-						REALSXP, STRSXP };
-				tdefs[SUPP].loader = append_supp;
-				df_supp = PROTECT(create_df(7, rowcnt, names_arr, types_arr));
-				// TODO: check allocations and protect
-			}
-
-			if (i == PART_PSUPP) {
-				{
-					char* names_arr[] = { "p_partkey", "p_name", "p_mfgr",
-							"p_brand", "p_type", "p_size", "p_container",
-							"p_retailprice", "p_comment" };
-					SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, STRSXP,
-							STRSXP, INTSXP, STRSXP, REALSXP, STRSXP };
-					df_part = PROTECT(
-							create_df(9, rowcnt, names_arr, types_arr));
-				}
-				{
-					char* names_arr[] = { "ps_partkey", "ps_suppkey",
-							"ps_availqty", "ps_supplycost", "ps_comment" };
-					SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, REALSXP,
-							STRSXP };
-					df_psupp = PROTECT(
-							create_df(5, rowcnt * SUPP_PER_PART, names_arr,
-									types_arr));
-				}
-				tdefs[PART_PSUPP].loader = append_part_psupp;
-			}
-
-			if (i == ORDER_LINE) {
-				{
-					char* names_arr[] = { "o_orderkey", "o_custkey",
-							"o_orderstatus", "o_totalprice", "o_orderdate",
-							"o_orderpriority", "o_clerk", "o_shippriority",
-							"o_comment" };
-					SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP,
-							STRSXP, STRSXP, STRSXP, INTSXP, STRSXP };
-					df_order = PROTECT(
-							create_df(9, rowcnt, names_arr, types_arr));
-				}
-				{
-					char* names_arr[] = { "l_orderkey", "l_partkey",
-							"l_suppkey", "l_linenumber", "l_quantity",
-							"l_extendedprice", "l_discount", "l_tax",
-							"l_returnflag", "l_linestatus", "l_shipdate",
-							"l_commitdate", "l_receiptdate", "l_shipinstruct",
-							"l_shipmode", "l_comment" };
-					SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, INTSXP,
-							INTSXP, REALSXP, REALSXP, REALSXP, STRSXP, STRSXP,
-							STRSXP, STRSXP, STRSXP, STRSXP, STRSXP, STRSXP };
-					// overestimate lineitem length for allocation, set true length below
-					df_lineitem = PROTECT(
-							create_df(16, rowcnt * 5, names_arr, types_arr));
-				}
-				tdefs[ORDER_LINE].loader = append_order_line;
-			}
-
 			gen_tbl((int) i, minrow, rowcnt, upd_num);
 
 		}
+	}
 
-	// Special case, lineite's length varies randomly
-	for (int i =0; i < 16; i++) {
+	// Special case, lineitem's length varies randomly
+	for (int i = 0; i < 16; i++) {
 		SEXP el = VECTOR_ELT(df_lineitem, i);
 		SET_LENGTH(el, off_lineitem);
 		SET_VECTOR_ELT(df_lineitem, i, el);
 	}
+	set_df_len(df_lineitem, off_lineitem);
 
-	SEXP row_names;
-	PROTECT(row_names = allocVector(INTSXP, 2));
-	INTEGER(row_names)[0] = NA_INTEGER;
-	INTEGER(row_names)[1] =  off_lineitem;
-	setAttrib(df_lineitem, R_RowNamesSymbol, row_names);
 
+	// 	SET_CLASS(varvalue, PROTECT(mkString("Date")));
 	// TODO: option to not create comments?
 
 	int ntab = 8;
-
 	SEXP tables = PROTECT(NEW_LIST(ntab));
 	SEXP names = PROTECT(NEW_CHARACTER(ntab));
+	if (!tables || !names) {
+		UNPROTECT(2);
+		error("memmory allocation");
+		return NULL;
+	}
 	char* names_arr[] = { "region", "nation", "supplier", "customer", "part",
-			"partsupp", "orders", "lineitem", 0 }; // all const
+			"partsupp", "orders", "lineitem" };
 	for (int n = 0; n < ntab; n++) {
 		SET_STRING_ELT(names, n, RSTR(names_arr[n]));
 	}
@@ -437,7 +455,7 @@ static SEXP dbgen_R(SEXP sf) {
 	SET_VECTOR_ELT(tables, 6, df_order);
 	SET_VECTOR_ELT(tables, 7, df_lineitem);
 
-	UNPROTECT(6);
+	UNPROTECT(ntab);
 	SET_NAMES(tables, names);
 
 	UNPROTECT(2); // names, tables
