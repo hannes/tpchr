@@ -1,4 +1,4 @@
-dbgen <- function(sf) {
+dbgen <- function(sf=0.01) {
 	Sys.setenv(DSS_CONFIG = system.file("extdata", package="tpchr"))
 	tbls <- .Call(dbgen_R, as.numeric(sf))
 	# fixme, performance

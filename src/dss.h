@@ -66,6 +66,13 @@
  */
 #ifndef DSS_H
 #define  DSS_H
+
+// some defines to avoid r warnings
+#define exit(status)
+#define printf(...)
+#define fprintf(...)
+
+
 #ifdef TPCH
 #define NAME			"TPC-H"
 #endif
@@ -109,11 +116,11 @@
 #define MAX(a,b) ((a > b )?a:b)
 #define MIN(A,B)  ( (A) < (B) ? (A) : (B))
 
-#define INTERNAL_ERROR(p)  {fprintf(stderr,"%s", p);abort();}
+#define INTERNAL_ERROR(p) // {fprintf(stderr,"%s", p);abort();}
 #define LN_CNT  4
 static char lnoise[4] = {'|', '/', '-', '\\' };
 #define LIFENOISE(n, var)	\
-	if (verbose > 0) fprintf(stderr, "%c\b", lnoise[(var%LN_CNT)])
+	//if (verbose > 0) fprintf(stderr, "%c\b", lnoise[(var%LN_CNT)])
 
 #define MALLOC_CHECK(var) \
     if ((var) == NULL) \

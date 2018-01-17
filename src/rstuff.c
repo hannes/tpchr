@@ -88,7 +88,6 @@ static int append_psupp(part_t *part, int mode) {
 }
 
 static int append_part_psupp(part_t *part, int mode) {
-	//  tdefs[PART].name = tdefs[PART_PSUPP].name;
 	append_part(part, mode);
 	append_psupp(part, mode);
 	return (0);
@@ -104,12 +103,13 @@ static int append_order(order_t *o, int mode) {
 
 	APPEND_INTSXP(o->okey);
 	APPEND_INTSXP(o->custkey)
-	char str[2] = "\0";
+	char str[2] = "X";
 	str[0] = o->orderstatus;
 	APPEND_STRSXP(str);
 	APPEND_NUMSXP(o->totalprice);
 	// TODO: use date objects for this?
 	APPEND_STRSXP(o->odate);
+
 	APPEND_STRSXP(o->opriority);
 	APPEND_STRSXP(o->clerk);
 	APPEND_INTSXP(o->spriority);
@@ -142,9 +142,11 @@ static int append_line(order_t *o, int mode) {
 		APPEND_STRSXP(str);
 		str[0] = o->l[i].lstatus[0];
 		APPEND_STRSXP(str);
+		// TODO:
 		APPEND_STRSXP(o->l[i].sdate);
 		APPEND_STRSXP(o->l[i].cdate);
 		APPEND_STRSXP(o->l[i].rdate);
+
 		APPEND_STRSXP(o->l[i].shipinstruct);
 		APPEND_STRSXP(o->l[i].shipmode);
 		APPEND_STRSXP(o->l[i].comment);
@@ -155,7 +157,6 @@ static int append_line(order_t *o, int mode) {
 }
 
 static int append_order_line(order_t *o, int mode) {
-	//  tdefs[ORDER].name = tdefs[ORDER_LINE].name;
 	append_order(o, mode);
 	append_line(o, mode);
 
