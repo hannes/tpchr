@@ -1,9 +1,3 @@
--- $ID$
--- TPC-H/TPC-R Parts/Supplier Relationship Query (Q16)
--- Functional Query Definition
--- Approved February 1998
-:x
-:o
 select
 	p_brand,
 	p_type,
@@ -14,9 +8,9 @@ from
 	part
 where
 	p_partkey = ps_partkey
-	and p_brand <> ':1'
-	and p_type not like ':2%'
-	and p_size in (:3, :4, :5, :6, :7, :8, :9, :10)
+	and p_brand <> 'Brand#45'
+	and p_type not like 'MEDIUM POLISHED%'
+	and p_size in (49, 14, 23, 45, 19, 3, 36, 9)
 	and ps_suppkey not in (
 		select
 			s_suppkey
@@ -34,4 +28,3 @@ order by
 	p_brand,
 	p_type,
 	p_size;
-:n -1

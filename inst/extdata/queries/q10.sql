@@ -1,9 +1,3 @@
--- $ID$
--- TPC-H/TPC-R Returned Item Reporting Query (Q10)
--- Functional Query Definition
--- Approved February 1998
-:x
-:o
 select
 	c_custkey,
 	c_name,
@@ -21,8 +15,8 @@ from
 where
 	c_custkey = o_custkey
 	and l_orderkey = o_orderkey
-	and o_orderdate >= date ':1'
-	and o_orderdate < date ':1' + interval '3' month
+	and o_orderdate >= date '1993-10-01'
+	and o_orderdate < date '1993-10-01' + interval '3' month
 	and l_returnflag = 'R'
 	and c_nationkey = n_nationkey
 group by
@@ -34,5 +28,5 @@ group by
 	c_address,
 	c_comment
 order by
-	revenue desc;
-:n 20
+	revenue desc
+limit 20;

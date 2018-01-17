@@ -7,6 +7,11 @@ get_answer <- function(q=1) {
 	read.delim(system.file(sprintf("extdata/answers/q%d.ans", q), package="tpchr"), sep="|", stringsAsFactors=FALSE)
 }
 
+get_query <- function(q=1) {
+	if (check_flag(q) || q < 1 || q > 22) stop("Need a single query number 1-22 as parameter")
+    paste(readLines(system.file(sprintf("extdata/queries/q%d.sql", q), package="tpchr")), collapse="\n")
+}
+
 dbgen <- function(sf=0.01) {
 	if (check_flag(sf) || sf < 0) stop("Need a single scale factor > 0 as parameter")
 	Sys.setenv(DSS_CONFIG = system.file("extdata", package="tpchr"))
@@ -168,3 +173,6 @@ test_dplyr <- function(src, q) {
 	data_identical(test_dplyr_q[[q]](src), get_answer(q))
 }
 
+test_dbi <- function(con, q) {
+	data_identical(dbGetQuery(con, get_query(q)), get_answer(q))
+}

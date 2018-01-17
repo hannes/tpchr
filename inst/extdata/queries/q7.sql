@@ -1,9 +1,3 @@
--- $ID$
--- TPC-H/TPC-R Volume Shipping Query (Q7)
--- Functional Query Definition
--- Approved February 1998
-:x
-:o
 select
 	supp_nation,
 	cust_nation,
@@ -30,8 +24,8 @@ from
 			and s_nationkey = n1.n_nationkey
 			and c_nationkey = n2.n_nationkey
 			and (
-				(n1.n_name = ':1' and n2.n_name = ':2')
-				or (n1.n_name = ':2' and n2.n_name = ':1')
+				(n1.n_name = 'FRANCE' and n2.n_name = 'GERMANY')
+				or (n1.n_name = 'GERMANY' and n2.n_name = 'FRANCE')
 			)
 			and l_shipdate between date '1995-01-01' and date '1996-12-31'
 	) as shipping
@@ -43,4 +37,3 @@ order by
 	supp_nation,
 	cust_nation,
 	l_year;
-:n -1
