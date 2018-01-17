@@ -13,7 +13,7 @@ test_that( "dplyr backed by data frames" , {
 
 
 test_that( "MonetDBLite" , {
-	c <- dbConnect(MonetDBLite::MonetDBLite(), ":memory:")
+	c <- dbConnect(MonetDBLite::MonetDBLite())
 	lapply(names(tbls), function(n) {dbWriteTable(c, n, tbls[[n]])})
 	lapply(q, function(n) {expect_true(test_dbi(c, n))})
 	dbDisconnect(c, shutdown=T)
