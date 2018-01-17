@@ -41,58 +41,56 @@ lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
 ````
 
 ## Queries
-See the [benchmark specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v2.17.3.pdf) for the full set of queries, but here are SQL and dplyr examples for Query 3:
+See the [benchmark specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v2.17.3.pdf) for the full set of queries, but here are SQL and dplyr examples for Query 1:
 
 ````SQL
 select
-	l_orderkey,
-	sum(l_extendedprice * (1 - l_discount)) as revenue,
-	o_orderdate,
-	o_shippriority
+	l_returnflag,
+	l_linestatus,
+	sum(l_quantity) as sum_qty,
+	sum(l_extendedprice) as sum_base_price,
+	sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,
+	sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,
+	avg(l_quantity) as avg_qty,
+	avg(l_extendedprice) as avg_price,
+	avg(l_discount) as avg_disc,
+	count(*) as count_order
 from
-	customer,
-	orders,
 	lineitem
 where
-	c_mktsegment = 'BUILDING'
-	and c_custkey = o_custkey
-	and l_orderkey = o_orderkey
-	and o_orderdate < date '1995-03-15'
-	and l_shipdate > date '1995-03-15'
+	l_shipdate <= '1998-09-02'
 group by
-	l_orderkey,
-	o_orderdate,
-	o_shippriority
+	l_returnflag,
+	l_linestatus
 order by
-	revenue desc,
-	o_orderdate
-limit 10;
+	l_returnflag,
+	l_linestatus;
 ````
 
 ````R
-tbl(s, "customer") %>% filter(c_mktsegment == "BUILDING") %>% 
-	inner_join(tbl(s, "orders") %>% filter(o_orderdate < as.Date('1995-03-15')), by=c("c_custkey" = "o_custkey")) %>% 
-	inner_join(tbl(s, "lineitem") %>% filter(l_shipdate > as.Date('1995-03-15')), by=c("o_orderkey" = "l_orderkey")) %>% 
-	group_by(o_orderkey, o_orderdate, o_shippriority) %>% 
-	summarise(revenue=sum(l_extendedprice * (1 - l_discount))) %>% 
-	select(o_orderkey, revenue, o_orderdate, o_shippriority) %>% 
-	arrange(desc(revenue), o_orderdate) %>% head(10)
+tbl(s, "lineitem") %>% 
+	filter(l_shipdate <= as.Date('1998-12-01') - 90) %>% 
+	group_by(l_returnflag, l_linestatus) %>% 
+	summarise(
+		sum_qty=sum(l_quantity), 
+		sum_base_price=sum(l_extendedprice), 
+		sum_disc_price=sum(l_extendedprice * (1 - l_discount)), 
+		sum_charge=sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)), 
+		avg_qty=mean(l_quantity), 
+		avg_price=mean(l_extendedprice), 
+		avg_disc=mean(l_discount), count_order=n()) %>% 
+	arrange(l_returnflag, l_linestatus)
 ````
 
 This query is expected to produce the following result using a scale factor of 1:
 
-|l_orderkey|revenue  |o_orderdat|o_shippriority  |
-| -------- | ------- | -------- | -------------- |
-|   2456423|406181.01|1995-03-05|              0 |
-|   3459808|405838.70|1995-03-04|              0 |
-|    492164|390324.06|1995-02-19|              0 |
-|   1188320|384537.94|1995-03-09|              0 |
-|   2435712|378673.06|1995-02-26|              0 |
-|   4878020|378376.80|1995-03-12|              0 |
-|   5521732|375153.92|1995-03-13|              0 |
-|   2628192|373133.31|1995-02-22|              0 |
-|    993600|371407.46|1995-03-05|              0 |
-|   2300070|367371.15|1995-03-13|              0 |
+||||||| | |||       
+|-|-|-------|--------------|--------------|----------|--------|---------|--------|-----------|    
+|A|F|37734107.00|56586554400.73|53758257134.87|55909065222.83|25.52|38273.13|0.05|    1478493 |
+|N|F|991417.00|1487504710.38|1413082168.05|1469649223.19|25.52|38284.47|0.05|           38854 |
+|N|O|74476040.00|111701729697.74|106118230307.61|110367043872.50|25.50|38249.12|0.05| 2920374 |
+|R|F|37719753.00|56568041380.90|53741292684.60|55889619119.83|25.51|38250.85|0.05|    1478870 |
+
 
 
 To check this query automatically using your `dplyr` source `s`, you can run
