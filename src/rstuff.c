@@ -1,4 +1,6 @@
 #include <Rdefines.h>
+#include <time.h>
+
 #include "dss.h"
 #include "dsstypes.h"
 
@@ -13,6 +15,64 @@ void load_dists(void);
 
 static SEXP df_region = NULL;
 static size_t off_region = 0;
+
+// borrowed from MonetDB
+#define YEAR_MAX		5867411
+#define YEAR_MIN		(-YEAR_MAX)
+#define LEAPYEAR(y)		((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
+#define DATE(d,m,y)		((m) > 0 && (m) <= 12 && (d) > 0 && (y) != 0 && (y) >= YEAR_MIN && (y) <= YEAR_MAX && (d) <= MONTHDAYS(m, y))
+#define MONTHDAYS(m,y)	((m) != 2 ? LEAPDAYS[m] : LEAPYEAR(y) ? 29 : 28)
+
+static int LEAPDAYS[13] = {
+	0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+static int CUMDAYS[13] = {
+	0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
+};
+
+static int
+leapyears(int year)
+{
+	/* count the 4-fold years that passed since jan-1-0 */
+	int y4 = year / 4;
+
+	/* count the 100-fold years */
+	int y100 = year / 100;
+
+	/* count the 400-fold years */
+	int y400 = year / 400;
+
+	return y4 + y400 - y100 + (year >= 0);	/* may be negative */
+}
+
+static int
+todate(int day, int month, int year)
+{
+	int n = 0;
+
+	if (DATE(day, month, year)) {
+		if (year < 0)
+			year++;				/* HACK: hide year 0 */
+		n = (int) (day - 1);
+		if (month > 2 && LEAPYEAR(year))
+			n++;
+		n += CUMDAYS[month - 1];
+		/* current year does not count as leapyear */
+		n += 365 * year + leapyears(year >= 0 ? year - 1 : year);
+	}
+	return n ;
+}
+
+// end of borrowing
+
+
+// 2017-05-26
+static int date_to_int(char* datestr) {
+	datestr[4] = 0;
+	datestr[7] = 0;
+	return todate(atoi(datestr + 8), atoi(datestr + 5), atoi(datestr)) - 719528;
+}
+
 
 static int append_region(code_t *c, int mode) {
 	int col = 0;
@@ -108,8 +168,8 @@ static int append_order(order_t *o, int mode) {
 	APPEND_STRSXP(str);
 	APPEND_NUMSXP(o->totalprice);
 	// TODO: use date objects for this?
-	APPEND_STRSXP(o->odate);
-
+	//APPEND_STRSXP(o->odate);
+	APPEND_INTSXP(date_to_int(o->odate));
 	APPEND_STRSXP(o->opriority);
 	APPEND_STRSXP(o->clerk);
 	APPEND_INTSXP(o->spriority);
@@ -142,10 +202,9 @@ static int append_line(order_t *o, int mode) {
 		APPEND_STRSXP(str);
 		str[0] = o->l[i].lstatus[0];
 		APPEND_STRSXP(str);
-		// TODO:
-		APPEND_STRSXP(o->l[i].sdate);
-		APPEND_STRSXP(o->l[i].cdate);
-		APPEND_STRSXP(o->l[i].rdate);
+		APPEND_INTSXP(date_to_int(o->l[i].sdate));
+		APPEND_INTSXP(date_to_int(o->l[i].cdate));
+		APPEND_INTSXP(date_to_int(o->l[i].rdate));
 
 		APPEND_STRSXP(o->l[i].shipinstruct);
 		APPEND_STRSXP(o->l[i].shipmode);
@@ -336,6 +395,12 @@ static SEXP dbgen_R(SEXP sf) {
 	tdefs[PART_PSUPP].loader = append_part_psupp;
 	tdefs[ORDER_LINE].loader = append_order_line;
 
+	SEXP dateClass = PROTECT(mkString("Date"));
+	if (!dateClass) {
+		error("memory allocation");
+		return NULL;
+	}
+
 	// setup the various data frames
 	{
 		char* names_arr[] = { "n_nationkey", "n_name", "n_regionkey",
@@ -387,10 +452,12 @@ static SEXP dbgen_R(SEXP sf) {
 		char* names_arr[] = { "o_orderkey", "o_custkey", "o_orderstatus",
 				"o_totalprice", "o_orderdate", "o_orderpriority", "o_clerk",
 				"o_shippriority", "o_comment" };
-		SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP, STRSXP,
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP, INTSXP,
 				STRSXP, STRSXP, INTSXP, STRSXP };
 		df_order = PROTECT(
 				create_df(9, tdefs[ORDER_LINE].base, names_arr, types_arr));
+
+
 	}
 	{
 		char* names_arr[] = { "l_orderkey", "l_partkey", "l_suppkey",
@@ -399,12 +466,15 @@ static SEXP dbgen_R(SEXP sf) {
 				"l_commitdate", "l_receiptdate", "l_shipinstruct", "l_shipmode",
 				"l_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, INTSXP, INTSXP,
-				REALSXP, REALSXP, REALSXP, STRSXP, STRSXP, STRSXP, STRSXP,
-				STRSXP, STRSXP, STRSXP, STRSXP };
+				REALSXP, REALSXP, REALSXP, STRSXP, STRSXP, INTSXP, INTSXP,
+				INTSXP, STRSXP, STRSXP, STRSXP };
 		// overestimate lineitem length for allocation, set true length below
 		df_lineitem = PROTECT(
 				create_df(16, tdefs[ORDER_LINE].base * 4.5, names_arr,
 						types_arr));
+
+
+
 	}
 	/*
 	 * traverse the tables, invoking the appropriate data generation routine for any to be built
@@ -430,8 +500,12 @@ static SEXP dbgen_R(SEXP sf) {
 	}
 	set_df_len(df_lineitem, off_lineitem);
 
+	SET_CLASS(VECTOR_ELT(df_order, 4), dateClass);
 
-	// 	SET_CLASS(varvalue, PROTECT(mkString("Date")));
+	SET_CLASS(VECTOR_ELT(df_lineitem, 10), dateClass);
+	SET_CLASS(VECTOR_ELT(df_lineitem, 11), dateClass);
+	SET_CLASS(VECTOR_ELT(df_lineitem, 12), dateClass);
+
 	// TODO: option to not create comments?
 
 	int ntab = 8;
@@ -459,7 +533,7 @@ static SEXP dbgen_R(SEXP sf) {
 	UNPROTECT(ntab);
 	SET_NAMES(tables, names);
 
-	UNPROTECT(2); // names, tables
+	UNPROTECT(3); // names, tables, dateClass
 	return tables;
 }
 
