@@ -2,12 +2,12 @@ language: r
 sudo: false
 cache: packages
 r:
-  - oldrel
   - release
   - devel
 
 r_github_packages:
    - hadley/dplyr
+   - hannesmuehleisen/MonetDBLite-R
 
 after_failure:
   - ./travis-tool.sh dump_logs

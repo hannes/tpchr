@@ -18,8 +18,27 @@ If you encounter a bug, please file a minimal reproducible example on [github](h
 
 
 ## Data Generation
+The data generator creates 8 tables, their size can be dependent on a "scale factor" SF.: 
+* `region` (25 rows)
+* `nation` (25 rows)
+* `supplier` (SF * 10,000 rows)
+* `customer` (SF * 150,000 rows)
+* `part` (SF * 200,000 rows)
+* `partsupp` (SF * 800,000 rows)
+* `orders` (SF * 1,500,000 rows)
+* `lineitem` (~ SF * 6,000,000 rows)
 
+To use the data generator, call the `dbgen` function with the desired scale factor:
+```R
+tbls <- tpchr::dbgen(0.001)
+```
 
+`tbls` is now a named list of `data.frames`, each containing one of the tables. To write those into a database with connection `con`, you could use
+
+````R
+lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
+
+````
 
 ## Queries
 See the [benchmark specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v2.17.3.pdf) for the full set of queries, but here are SQL and dplyr examples for Query 3:
