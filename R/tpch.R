@@ -4,7 +4,7 @@ check_flag <- function(f) {
 
 get_answer <- function(q=1) {
 	if (check_flag(q) || q < 1 || q > 22) stop("Need a single query number 1-22 as parameter")
-	read.delim(system.file(sprintf("extdata/answers/q%d.out", q), package="tpchr"), sep="|", stringsAsFactors=FALSE)
+	read.delim(system.file(sprintf("extdata/answers/q%d.ans", q), package="tpchr"), sep="|", stringsAsFactors=FALSE)
 }
 
 dbgen <- function(sf=0.01) {
