@@ -10,7 +10,7 @@ This package wraps the `dbgen` data generator from TPC-H, modified so it produce
 
 * the latest version from github on the command line
 
-    ```
+    ```R
     devtools::install_github("hannesmuehleisen/tpchr")
     ```
 
@@ -24,7 +24,7 @@ If you encounter a bug, please file a minimal reproducible example on [github](h
 ## Queries
 See the [benchmark specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-h_v2.17.3.pdf) for the full set of queries, but here are SQL and dplyr examples for Query 3:
 
-````
+````SQL
 select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -50,7 +50,7 @@ order by
 limit 10;
 ````
 
-````
+````R
 tbl(s, "customer") %>% filter(c_mktsegment == "BUILDING") %>% 
 	inner_join(tbl(s, "orders") %>% filter(o_orderdate < as.Date('1995-03-15')), by=c("c_custkey" = "o_custkey")) %>% 
 	inner_join(tbl(s, "lineitem") %>% filter(l_shipdate > as.Date('1995-03-15')), by=c("o_orderkey" = "l_orderkey")) %>% 
@@ -76,8 +76,8 @@ This query is expected to produce the following result using a scale factor of 1
 |   2300070|367371.15|1995-03-13|              0 |
 
 
-To check this automatically using your `dplyr` source `s`, you can run
-````
+To check this query automatically using your `dplyr` source `s`, you can run
+````R
 tpchr::test_dplyr(s, 3)
 ````
 

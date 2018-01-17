@@ -67,10 +67,7 @@
 #ifndef DSS_H
 #define  DSS_H
 
-// some defines to avoid r warnings
-#define exit(status)
-#define printf(...)
-#define fprintf(...)
+
 
 
 #ifdef TPCH
@@ -90,6 +87,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+
+// some defines to avoid r warnings
+#define exit(status)
+#define printf(...)
+#define fprintf(...)
 
 #define  NONE		-1
 #define  PART		0
