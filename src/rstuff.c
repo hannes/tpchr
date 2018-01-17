@@ -394,6 +394,16 @@ static SEXP dbgen_R(SEXP sf) {
 	tdefs[PART_PSUPP].loader = append_part_psupp;
 	tdefs[ORDER_LINE].loader = append_order_line;
 
+	off_cust = 0;
+	off_lineitem = 0;
+	off_nation = 0;
+	off_order = 0;
+	off_part = 0;
+	off_psupp = 0;
+	off_region = 0;
+	off_supp = 0;
+
+
 	SEXP dateClass = PROTECT(mkString("Date"));
 	if (!dateClass) {
 		error("memory allocation");

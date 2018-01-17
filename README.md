@@ -100,3 +100,7 @@ To check this query automatically using your `dplyr` source `s`, you can run
 tpchr::test_dplyr(s, 3)
 ````
 
+To check this query automatically using a DBI connection `c`, you can run
+````R
+tpchr::test_dbi(c, 3)
+````
