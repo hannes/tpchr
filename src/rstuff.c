@@ -437,14 +437,14 @@ static SEXP dbgen_R(SEXP sf) {
 		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, STRSXP, STRSXP, INTSXP,
 				STRSXP, REALSXP, STRSXP };
 		df_part = PROTECT(
-				create_df(9, tdefs[PART_PSUPP].base, names_arr, types_arr));
+				create_df(9, tdefs[PART_PSUPP].base * scale, names_arr, types_arr));
 	}
 	{
 		char* names_arr[] = { "ps_partkey", "ps_suppkey", "ps_availqty",
 				"ps_supplycost", "ps_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, REALSXP, STRSXP };
 		df_psupp = PROTECT(
-				create_df(5, tdefs[PART_PSUPP].base * SUPP_PER_PART, names_arr,
+				create_df(5, tdefs[PART_PSUPP].base * scale * SUPP_PER_PART, names_arr,
 						types_arr));
 	}
 	{
@@ -454,9 +454,7 @@ static SEXP dbgen_R(SEXP sf) {
 		SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP, INTSXP,
 				STRSXP, STRSXP, INTSXP, STRSXP };
 		df_order = PROTECT(
-				create_df(9, tdefs[ORDER_LINE].base, names_arr, types_arr));
-
-
+				create_df(9, tdefs[ORDER_LINE].base * scale, names_arr, types_arr));
 	}
 	{
 		char* names_arr[] = { "l_orderkey", "l_partkey", "l_suppkey",
@@ -469,7 +467,7 @@ static SEXP dbgen_R(SEXP sf) {
 				INTSXP, STRSXP, STRSXP, STRSXP };
 		// overestimate lineitem length for allocation, set true length below
 		df_lineitem = PROTECT(
-				create_df(16, tdefs[ORDER_LINE].base * 4.5, names_arr,
+				create_df(16, tdefs[ORDER_LINE].base * scale * 4.5, names_arr,
 						types_arr));
 	}
 	/*
