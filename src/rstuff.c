@@ -122,19 +122,42 @@ static int append_order(order_t *o, int mode) {
 static SEXP df_lineitem = NULL;
 static size_t off_lineitem = 0;
 
-static int append_lineitem(order_t *o, int mode) {
-	int col = 0;
+static int append_line(order_t *o, int mode) {
 	SEXP as = df_lineitem;
-	size_t of = off_lineitem;
 
-	off_lineitem++;
+	for (size_t i = 0; i < o->lines; i++) {
+		int col = 0;
+		size_t of = off_lineitem;
+
+		APPEND_INTSXP(o->l[i].okey);
+		APPEND_INTSXP(o->l[i].partkey);
+		APPEND_INTSXP(o->l[i].suppkey);
+		APPEND_INTSXP(o->l[i].lcnt);
+		APPEND_INTSXP(o->l[i].quantity);
+		APPEND_NUMSXP(o->l[i].eprice);
+		APPEND_NUMSXP(o->l[i].discount);
+		APPEND_NUMSXP(o->l[i].tax);
+		char str[2] = "X";
+		str[0] = o->l[i].rflag[0];
+		APPEND_STRSXP(str);
+		str[0] = o->l[i].lstatus[0];
+		APPEND_STRSXP(str);
+		APPEND_STRSXP(o->l[i].sdate);
+		APPEND_STRSXP(o->l[i].cdate);
+		APPEND_STRSXP(o->l[i].rdate);
+		APPEND_STRSXP(o->l[i].shipinstruct);
+		APPEND_STRSXP(o->l[i].shipmode);
+		APPEND_STRSXP(o->l[i].comment);
+
+		off_lineitem++;
+	}
 	return (0);
 }
 
 static int append_order_line(order_t *o, int mode) {
 	//  tdefs[ORDER].name = tdefs[ORDER_LINE].name;
 	append_order(o, mode);
-	//append_line(o, mode);
+	append_line(o, mode);
 
 	return (0);
 }
@@ -220,7 +243,7 @@ static SEXP dbgen_R(SEXP sf) {
 	double flt_scale;
 	long upd_num = 0;
 	DSS_HUGE i;
-
+	// all tables
 	table = (1 << CUST) | (1 << SUPP) | (1 << NATION) | (1 << REGION)
 			| (1 << PART_PSUPP) | (1 << ORDER_LINE);
 	force = 0;
@@ -244,8 +267,8 @@ static SEXP dbgen_R(SEXP sf) {
 	children = 1;
 	d_path = NULL;
 
-	// TODO: actually interpret parameter sf
-	flt_scale = 0.1;
+	flt_scale = NUMERIC_POINTER(sf)[0];
+
 	if (flt_scale < MIN_SCALE) {
 		int i;
 		int int_scale;
@@ -367,19 +390,32 @@ static SEXP dbgen_R(SEXP sf) {
 							"l_returnflag", "l_linestatus", "l_shipdate",
 							"l_commitdate", "l_receiptdate", "l_shipinstruct",
 							"l_shipmode", "l_comment" };
-					SEXPTYPE types_arr[] = { };
+					SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, INTSXP,
+							INTSXP, REALSXP, REALSXP, REALSXP, STRSXP, STRSXP,
+							STRSXP, STRSXP, STRSXP, STRSXP, STRSXP, STRSXP };
+					// overestimate lineitem length for allocation, set true length below
 					df_lineitem = PROTECT(
-							create_df(16, 42, names_arr,
-									types_arr));
-					//
-					// FIXME: this won't work like this unless we know the amount of lines in lineitem
-					//
+							create_df(16, rowcnt * 5, names_arr, types_arr));
 				}
 				tdefs[ORDER_LINE].loader = append_order_line;
 			}
 
 			gen_tbl((int) i, minrow, rowcnt, upd_num);
+
 		}
+
+	// Special case, lineite's length varies randomly
+	for (int i =0; i < 16; i++) {
+		SEXP el = VECTOR_ELT(df_lineitem, i);
+		SET_LENGTH(el, off_lineitem);
+		SET_VECTOR_ELT(df_lineitem, i, el);
+	}
+
+	SEXP row_names;
+	PROTECT(row_names = allocVector(INTSXP, 2));
+	INTEGER(row_names)[0] = NA_INTEGER;
+	INTEGER(row_names)[1] =  off_lineitem;
+	setAttrib(df_lineitem, R_RowNamesSymbol, row_names);
 
 	// TODO: option to not create comments?
 
