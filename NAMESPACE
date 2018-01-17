@@ -1,2 +1,2 @@
-export(dbgen)
+export(dbgen, test_dplyr)
 useDynLib(tpchr, .registration = TRUE)

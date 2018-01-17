@@ -119,7 +119,7 @@ static int append_part(part_t *part, int mode) {
 	APPEND_STRSXP(part->type);
 	APPEND_INTSXP(part->size);
 	APPEND_STRSXP(part->container);
-	APPEND_NUMSXP(part->retailprice);
+	APPEND_NUMSXP((double)part->retailprice/100);
 	APPEND_STRSXP(part->comment);
 
 	off_part++;
@@ -139,7 +139,7 @@ static int append_psupp(part_t *part, int mode) {
 		APPEND_INTSXP(part->s[i].partkey);
 		APPEND_INTSXP(part->s[i].suppkey);
 		APPEND_INTSXP(part->s[i].qty);
-		APPEND_NUMSXP(part->s[i].scost);
+		APPEND_NUMSXP((double)part->s[i].scost/100);
 		APPEND_STRSXP(part->s[i].comment);
 		off_psupp++;
 	}
@@ -166,7 +166,7 @@ static int append_order(order_t *o, int mode) {
 	char str[2] = "X";
 	str[0] = o->orderstatus;
 	APPEND_STRSXP(str);
-	APPEND_NUMSXP(o->totalprice);
+	APPEND_NUMSXP((double)o->totalprice/100);
 	// TODO: use date objects for this?
 	//APPEND_STRSXP(o->odate);
 	APPEND_INTSXP(date_to_int(o->odate));
@@ -194,9 +194,9 @@ static int append_line(order_t *o, int mode) {
 		APPEND_INTSXP(o->l[i].suppkey);
 		APPEND_INTSXP(o->l[i].lcnt);
 		APPEND_INTSXP(o->l[i].quantity);
-		APPEND_NUMSXP(o->l[i].eprice);
-		APPEND_NUMSXP(o->l[i].discount);
-		APPEND_NUMSXP(o->l[i].tax);
+		APPEND_NUMSXP((double)o->l[i].eprice/100);
+		APPEND_NUMSXP((double)o->l[i].discount/100);
+		APPEND_NUMSXP((double)o->l[i].tax/100);
 		char str[2] = "X";
 		str[0] = o->l[i].rflag[0];
 		APPEND_STRSXP(str);
@@ -235,7 +235,7 @@ static int append_cust(customer_t *c, int mode) {
 	APPEND_STRSXP(c->address);
 	APPEND_INTSXP(c->nation_code);
 	APPEND_STRSXP(c->phone);
-	APPEND_NUMSXP(c->acctbal);
+	APPEND_NUMSXP((double)c->acctbal/100);
 	APPEND_STRSXP(c->mktsegment);
 	APPEND_STRSXP(c->comment);
 
@@ -257,7 +257,7 @@ static int append_supp(supplier_t *supp, int mode) {
 	APPEND_STRSXP(supp->address);
 	APPEND_INTSXP(supp->nation_code);
 	APPEND_STRSXP(supp->phone);
-	APPEND_NUMSXP(supp->acctbal);
+	APPEND_NUMSXP((double)supp->acctbal/100);
 	APPEND_STRSXP(supp->comment);
 
 	off_supp++;
@@ -472,9 +472,6 @@ static SEXP dbgen_R(SEXP sf) {
 		df_lineitem = PROTECT(
 				create_df(16, tdefs[ORDER_LINE].base * 4.5, names_arr,
 						types_arr));
-
-
-
 	}
 	/*
 	 * traverse the tables, invoking the appropriate data generation routine for any to be built
@@ -486,9 +483,8 @@ static SEXP dbgen_R(SEXP sf) {
 				rowcnt = tdefs[i].base * scale;
 			else
 				rowcnt = tdefs[i].base;
-
+			// actually doing something
 			gen_tbl((int) i, minrow, rowcnt, upd_num);
-
 		}
 	}
 
@@ -500,6 +496,7 @@ static SEXP dbgen_R(SEXP sf) {
 	}
 	set_df_len(df_lineitem, off_lineitem);
 
+	// set date class manually for order/lineitem cols
 	SET_CLASS(VECTOR_ELT(df_order, 4), dateClass);
 
 	SET_CLASS(VECTOR_ELT(df_lineitem, 10), dateClass);

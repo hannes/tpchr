@@ -7,4 +7,5 @@ Description: TODO
 License: MPL (== 2.0)
 URL: https://github.com/hannesmuehleisen/tpchr
 Depends: R (>= 3.2.0)
+Imports: DBI, dplyr
 Collate: tpch.R
