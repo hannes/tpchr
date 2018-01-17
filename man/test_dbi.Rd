@@ -11,7 +11,7 @@ Run benchmark queries on DBI
 test_dbi(con, q) 
 }
 \arguments{
-   \item{con}{A DBI connection object.}
+   \item{con}{A gBI connection object.}
    \item{q}{Query number (1-22 for now).}
   }
 \value{

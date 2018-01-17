@@ -1,8 +1,9 @@
 library(testthat)
 library(dplyr)
+library(tpchr)
 
 test_that( "dplyr backed by data frames works" , {
-	tbls <- tpchr::dbgen(1)
+	tbls <- dbgen(1)
 	s <- src_df(env = list2env(tbls))
 
 	expect_true(test_dplyr(s, 1))

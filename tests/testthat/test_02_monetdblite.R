@@ -1,8 +1,9 @@
 library(testthat)
 library(DBI)
+library(tpchr)
 
 test_that( "MonetDBLite works" , {
-	tbls <- tpchr::dbgen(1)
+	tbls <- dbgen(1)
 	c <- dbConnect(MonetDBLite::MonetDBLite(), ":memory:")
 	lapply(names(tbls), function(n) {dbWriteTable(c, n, tbls[[n]])})
 
