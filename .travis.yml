@@ -6,6 +6,12 @@ r:
   - release
   - devel
 
+r_github_packages:
+   - hadley/dplyr
+
 after_failure:
   - ./travis-tool.sh dump_logs
 
+addons:
+  apt_packages:
+    - pandoc
