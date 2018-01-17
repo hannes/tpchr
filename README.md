@@ -93,10 +93,10 @@ This query is expected to produce the following result using a scale factor of 1
 
 To check this query automatically using your `dplyr` source `s`, you can run
 ````R
-tpchr::test_dplyr(s, 3)
+tpchr::test_dplyr(s, 1)
 ````
 
 To check this query automatically using a DBI connection `c`, you can run
 ````R
-tpchr::test_dbi(c, 3)
+tpchr::test_dbi(c, 1)
 ````
