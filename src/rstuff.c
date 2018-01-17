@@ -355,7 +355,6 @@ static SEXP dbgen_R(SEXP sf) {
 	scale = 1;
 	flt_scale = 1.0;
 	updates = 0;
-	step = -1;
 	tdefs[ORDER].base *=
 	ORDERS_PER_CUST; /* have to do this after init */
 	tdefs[LINE].base *=
