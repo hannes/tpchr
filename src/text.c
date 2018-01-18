@@ -48,7 +48,6 @@
 #include <stdlib.h>
 #if (defined(_POSIX_)||!defined(WIN32))		/* Change for Windows NT */
 #include <unistd.h>
-#include <sys/wait.h>
 #endif /* WIN32 */
 #include <stdio.h>				/* */
 #include <limits.h>

@@ -152,7 +152,7 @@
 //#define _POSIX_SOURCE
 #define STDLIB_HAS_GETOPT
 #define SUPPORT_64BITS
-#define DSS_HUGE long
+#define DSS_HUGE long long
 #define HUGE_FORMAT	"%ld"
 #define HUGE_DATE_FORMAT	"%02ld"
 #define RNG_A	6364136223846793005ull
@@ -174,6 +174,8 @@
 #define SUPPORT_64BITS
 #define DSS_HUGE __int64_t
 #endif /* SGI */
+
+#define _POSIX_
 
 #if (defined(WIN32)&&!defined(_POSIX_))
 #define pid_t int
