@@ -11,8 +11,8 @@ test_that( "dplyr backed by data frames" , {
 })
 
 test_that( "MonetDBLite" , {
-	c <- dbConnect(MonetDBLite::MonetDBLite())
-	lapply(names(tbls), function(n) {dbWriteTable(c, n, tbls[[n]])})
-	lapply(1:22, function(n) {expect_true(test_dbi(c, n))})
-	dbDisconnect(c, shutdown=T)
+	con <- dbConnect(MonetDBLite::MonetDBLite())
+	lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
+	lapply(c(1:13, 15:22), function(n) {expect_true(test_dbi(con, n))})
+	dbDisconnect(con, shutdown=T)
 })

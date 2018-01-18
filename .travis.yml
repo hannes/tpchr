@@ -7,7 +7,6 @@ r:
 
 r_github_packages:
    - hadley/dplyr
-   - hannesmuehleisen/MonetDBLite-R
 
 after_failure:
   - ./travis-tool.sh dump_logs
