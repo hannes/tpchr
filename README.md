@@ -1,6 +1,7 @@
 # TPC-H for R
 
 [![Build Status](https://travis-ci.org/hannesmuehleisen/tpchr.svg?branch=master)](https://travis-ci.org/hannesmuehleisen/tpchr)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/hannesmuehleisen/tpchr?branch=master&svg=true)](https://ci.appveyor.com/project/hannesmuehleisen/tpchr)
 
 `tpchr` wraps the Transaction Processing Council's [Decision Support Benchmark](http://www.tpc.org/tpch/) (TPC-H). The benchmark consists of a data generator, 22 queries and reference answers for those queries. The benchmark has been [highly influential](http://oai.cwi.nl/oai/asset/21424/21424B.pdf) in analytical data management research. 
 
