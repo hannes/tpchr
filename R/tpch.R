@@ -63,20 +63,19 @@ test_dplyr_q[[1]] <- function(s) {
 }
 
 test_dplyr_q[[2]] <- function(s) {
-    tbl(s, "part") %>% 
-        filter(p_size == 15, grepl(".*BRASS$", p_type)) %>% 
-        inner_join(tbl(s, "partsupp"), by=c("p_partkey" = "ps_partkey")) %>% 
-        inner_join(
-            tbl(s, "partsupp") %>% 
+    # this is a manual optimization, this intermediate table is used twice.
+    inner <- tbl(s, "partsupp") %>% 
                 inner_join(tbl(s, "supplier"), by=c("ps_suppkey" = "s_suppkey")) %>% 
                 inner_join(tbl(s, "nation"), by=c("s_nationkey" = "n_nationkey")) %>% 
-                inner_join(tbl(s, "region") %>% filter(r_name=="EUROPE"), by=c("n_regionkey"="r_regionkey")) %>% 
+                inner_join(tbl(s, "region") %>% filter(r_name=="EUROPE"), by=c("n_regionkey"="r_regionkey"))
+
+    tbl(s, "part") %>% 
+        filter(p_size == 15, grepl(".*BRASS$", p_type)) %>% 
+        inner_join(inner, by=c("p_partkey" = "ps_partkey")) %>% 
+        inner_join(inner %>% 
                 group_by(ps_partkey) %>% 
                 summarise(min_ps_supplycost = min(ps_supplycost)), 
                 by=c("p_partkey" = "ps_partkey", "ps_supplycost" = "min_ps_supplycost")) %>% 
-        inner_join(tbl(s, "supplier"), by=c("ps_suppkey" = "s_suppkey")) %>% 
-        inner_join(tbl(s, "nation"), by=c("s_nationkey" = "n_nationkey")) %>% 
-        inner_join(tbl(s, "region") %>% filter(r_name == "EUROPE"), by=c("n_regionkey" = "r_regionkey")) %>% 
         select(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment) %>%
         arrange(desc(s_acctbal), n_name, s_name, p_partkey) %>% head(100)
 }

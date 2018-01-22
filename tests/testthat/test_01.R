@@ -3,6 +3,10 @@ library(dplyr)
 library(tpchr)
 library(DBI)
 
+if (Sys.info()[['sysname']]=="Windows") {
+	memory.limit(memory.size())
+}
+
 tbls <- dbgen(sf=1, lean=TRUE)
 
 test_that( "dplyr backed by data frames" , {
