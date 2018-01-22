@@ -23,16 +23,11 @@ static size_t off_region = 0;
 #define DATE(d,m,y)		((m) > 0 && (m) <= 12 && (d) > 0 && (y) != 0 && (y) >= YEAR_MIN && (y) <= YEAR_MAX && (d) <= MONTHDAYS(m, y))
 #define MONTHDAYS(m,y)	((m) != 2 ? LEAPDAYS[m] : LEAPYEAR(y) ? 29 : 28)
 
-static int LEAPDAYS[13] = {
-	0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-};
-static int CUMDAYS[13] = {
-	0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
-};
+static int LEAPDAYS[13] = { 0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static int CUMDAYS[13] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304,
+		334, 365 };
 
-static int
-leapyears(int year)
-{
+static int leapyears(int year) {
 	/* count the 4-fold years that passed since jan-1-0 */
 	int y4 = year / 4;
 
@@ -42,17 +37,15 @@ leapyears(int year)
 	/* count the 400-fold years */
 	int y400 = year / 400;
 
-	return y4 + y400 - y100 + (year >= 0);	/* may be negative */
+	return y4 + y400 - y100 + (year >= 0); /* may be negative */
 }
 
-static int
-todate(int day, int month, int year)
-{
+static int todate(int day, int month, int year) {
 	int n = 0;
 
 	if (DATE(day, month, year)) {
 		if (year < 0)
-			year++;				/* HACK: hide year 0 */
+			year++; /* HACK: hide year 0 */
 		n = (int) (day - 1);
 		if (month > 2 && LEAPYEAR(year))
 			n++;
@@ -60,11 +53,10 @@ todate(int day, int month, int year)
 		/* current year does not count as leapyear */
 		n += 365 * year + leapyears(year >= 0 ? year - 1 : year);
 	}
-	return n ;
+	return n;
 }
 
 // end of borrowing
-
 
 // 2017-05-26
 static int date_to_int(char* datestr) {
@@ -73,6 +65,7 @@ static int date_to_int(char* datestr) {
 	return todate(atoi(datestr + 8), atoi(datestr + 5), atoi(datestr)) - 719528;
 }
 
+static char lean = 0;
 
 static int append_region(code_t *c, int mode) {
 	int col = 0;
@@ -119,9 +112,10 @@ static int append_part(part_t *part, int mode) {
 	APPEND_STRSXP(part->type);
 	APPEND_INTSXP(part->size);
 	APPEND_STRSXP(part->container);
-	APPEND_NUMSXP((double)part->retailprice/100);
-	APPEND_STRSXP(part->comment);
-
+	if (!lean) {
+		APPEND_NUMSXP((double)part->retailprice/100);
+		APPEND_STRSXP(part->comment);
+	}
 	off_part++;
 	return (0);
 }
@@ -140,7 +134,9 @@ static int append_psupp(part_t *part, int mode) {
 		APPEND_INTSXP(part->s[i].suppkey);
 		APPEND_INTSXP(part->s[i].qty);
 		APPEND_NUMSXP((double)part->s[i].scost/100);
-		APPEND_STRSXP(part->s[i].comment);
+		if (!lean) {
+			APPEND_STRSXP(part->s[i].comment);
+		}
 		off_psupp++;
 	}
 
@@ -171,7 +167,9 @@ static int append_order(order_t *o, int mode) {
 	//APPEND_STRSXP(o->odate);
 	APPEND_INTSXP(date_to_int(o->odate));
 	APPEND_STRSXP(o->opriority);
-	APPEND_STRSXP(o->clerk);
+	if (!lean) {
+		APPEND_STRSXP(o->clerk);
+	}
 	APPEND_INTSXP(o->spriority);
 	APPEND_STRSXP(o->comment);
 
@@ -192,7 +190,9 @@ static int append_line(order_t *o, int mode) {
 		APPEND_INTSXP(o->l[i].okey);
 		APPEND_INTSXP(o->l[i].partkey);
 		APPEND_INTSXP(o->l[i].suppkey);
-		APPEND_INTSXP(o->l[i].lcnt);
+		if (!lean) {
+			APPEND_INTSXP(o->l[i].lcnt);
+		}
 		APPEND_INTSXP(o->l[i].quantity);
 		APPEND_NUMSXP((double)o->l[i].eprice/100);
 		APPEND_NUMSXP((double)o->l[i].discount/100);
@@ -208,8 +208,9 @@ static int append_line(order_t *o, int mode) {
 
 		APPEND_STRSXP(o->l[i].shipinstruct);
 		APPEND_STRSXP(o->l[i].shipmode);
-		APPEND_STRSXP(o->l[i].comment);
-
+		if (!lean) {
+			APPEND_STRSXP(o->l[i].comment);
+		}
 		off_lineitem++;
 	}
 	return (0);
@@ -336,7 +337,7 @@ static SEXP create_df(size_t ncol, size_t nrow, char** names_arr,
 }
 
 // 'inspired' by driver.c::main(). also, what a mess
-static SEXP dbgen_R(SEXP sf) {
+static SEXP dbgen_R(SEXP sf, SEXP leansxp) {
 	DSS_HUGE rowcnt = 0, minrow = 0;
 	double flt_scale;
 	long upd_num = 0;
@@ -363,8 +364,10 @@ static SEXP dbgen_R(SEXP sf) {
 	ORDERS_PER_CUST; /* have to do this after init */
 	children = 1;
 	d_path = NULL;
+	lean = 0;
 
 	flt_scale = NUMERIC_POINTER(sf)[0];
+	lean = LOGICAL_POINTER(leansxp)[0];
 
 	if (flt_scale < MIN_SCALE) {
 		int i;
@@ -387,10 +390,10 @@ static SEXP dbgen_R(SEXP sf) {
 	tdefs[REGION].base = regions.count;
 
 	// setup loaders
-	tdefs[NATION].loader     = append_nation;
-	tdefs[REGION].loader     = append_region;
-	tdefs[CUST].loader       = append_cust;
-	tdefs[SUPP].loader       = append_supp;
+	tdefs[NATION].loader = append_nation;
+	tdefs[REGION].loader = append_region;
+	tdefs[CUST].loader = append_cust;
+	tdefs[SUPP].loader = append_supp;
 	tdefs[PART_PSUPP].loader = append_part_psupp;
 	tdefs[ORDER_LINE].loader = append_order_line;
 
@@ -427,7 +430,7 @@ static SEXP dbgen_R(SEXP sf) {
 		char* names_arr[] = { "c_custkey", "c_name", "c_address", "c_nationkey",
 				"c_phone", "c_acctbal", "c_mktsegment", "c_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
-				REALSXP, STRSXP, STRSXP };
+		REALSXP, STRSXP, STRSXP };
 		df_cust = PROTECT(
 				create_df(8, tdefs[CUST].base * scale, names_arr, types_arr));
 	}
@@ -435,49 +438,88 @@ static SEXP dbgen_R(SEXP sf) {
 		char* names_arr[] = { "s_suppkey", "s_name", "s_address", "s_nationkey",
 				"s_phone", "s_acctbal", "s_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, INTSXP, STRSXP,
-				REALSXP, STRSXP };
+		REALSXP, STRSXP };
 		df_supp = PROTECT(
 				create_df(7, tdefs[SUPP].base * scale, names_arr, types_arr));
 	}
-	{
+	if (!lean) {
 		char* names_arr[] =
 				{ "p_partkey", "p_name", "p_mfgr", "p_brand", "p_type",
 						"p_size", "p_container", "p_retailprice", "p_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, STRSXP, STRSXP, INTSXP,
-				STRSXP, REALSXP, STRSXP };
-		df_part = PROTECT(
-				create_df(9, tdefs[PART_PSUPP].base * scale, names_arr, types_arr));
+		STRSXP, REALSXP, STRSXP };
+		df_part =
+				PROTECT(
+						create_df(9, tdefs[PART_PSUPP].base * scale, names_arr, types_arr));
+	} else {
+		char* names_arr[] = { "p_partkey", "p_name", "p_mfgr", "p_brand",
+				"p_type", "p_size", "p_container" };
+		SEXPTYPE types_arr[] = { INTSXP, STRSXP, STRSXP, STRSXP, STRSXP, INTSXP,
+		STRSXP };
+		df_part =
+				PROTECT(
+						create_df(7, tdefs[PART_PSUPP].base * scale, names_arr, types_arr));
 	}
-	{
+	if (!lean) {
 		char* names_arr[] = { "ps_partkey", "ps_suppkey", "ps_availqty",
 				"ps_supplycost", "ps_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, REALSXP, STRSXP };
-		df_psupp = PROTECT(
-				create_df(5, tdefs[PART_PSUPP].base * scale * SUPP_PER_PART, names_arr,
-						types_arr));
+		df_psupp =
+				PROTECT(
+						create_df(5, tdefs[PART_PSUPP].base * scale * SUPP_PER_PART, names_arr, types_arr));
+	} else {
+		char* names_arr[] = { "ps_partkey", "ps_suppkey", "ps_availqty",
+				"ps_supplycost" };
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, REALSXP };
+		df_psupp =
+				PROTECT(
+						create_df(4, tdefs[PART_PSUPP].base * scale * SUPP_PER_PART, names_arr, types_arr));
 	}
-	{
+	if (!lean) {
 		char* names_arr[] = { "o_orderkey", "o_custkey", "o_orderstatus",
 				"o_totalprice", "o_orderdate", "o_orderpriority", "o_clerk",
 				"o_shippriority", "o_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP, INTSXP,
-				STRSXP, STRSXP, INTSXP, STRSXP };
-		df_order = PROTECT(
-				create_df(9, tdefs[ORDER_LINE].base * scale, names_arr, types_arr));
+		STRSXP, STRSXP, INTSXP, STRSXP };
+		df_order =
+				PROTECT(
+						create_df(9, tdefs[ORDER_LINE].base * scale, names_arr, types_arr));
+	} else {
+		char* names_arr[] = { "o_orderkey", "o_custkey", "o_orderstatus",
+				"o_totalprice", "o_orderdate", "o_orderpriority",
+				"o_shippriority", "o_comment" };
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, STRSXP, REALSXP, INTSXP,
+		STRSXP, INTSXP, STRSXP };
+		df_order =
+				PROTECT(
+						create_df(8, tdefs[ORDER_LINE].base * scale, names_arr, types_arr));
 	}
-	{
+	if (!lean) {
 		char* names_arr[] = { "l_orderkey", "l_partkey", "l_suppkey",
 				"l_linenumber", "l_quantity", "l_extendedprice", "l_discount",
 				"l_tax", "l_returnflag", "l_linestatus", "l_shipdate",
 				"l_commitdate", "l_receiptdate", "l_shipinstruct", "l_shipmode",
 				"l_comment" };
 		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, INTSXP, INTSXP,
-				REALSXP, REALSXP, REALSXP, STRSXP, STRSXP, INTSXP, INTSXP,
-				INTSXP, STRSXP, STRSXP, STRSXP };
+		REALSXP, REALSXP, REALSXP, STRSXP, STRSXP, INTSXP, INTSXP,
+		INTSXP, STRSXP, STRSXP, STRSXP };
 		// overestimate lineitem length for allocation, set true length below
-		df_lineitem = PROTECT(
-				create_df(16, tdefs[ORDER_LINE].base * scale * 4.5, names_arr,
-						types_arr));
+		df_lineitem =
+				PROTECT(
+						create_df(16, tdefs[ORDER_LINE].base * scale * 4.5, names_arr, types_arr));
+	} else {
+		char* names_arr[] = { "l_orderkey", "l_partkey", "l_suppkey",
+				"l_quantity", "l_extendedprice", "l_discount", "l_tax",
+				"l_returnflag", "l_linestatus", "l_shipdate", "l_commitdate",
+				"l_receiptdate", "l_shipinstruct", "l_shipmode" };
+		SEXPTYPE types_arr[] = { INTSXP, INTSXP, INTSXP, INTSXP,
+		REALSXP, REALSXP, REALSXP, STRSXP, STRSXP, INTSXP, INTSXP,
+		INTSXP, STRSXP, STRSXP };
+		// overestimate lineitem length for allocation, set true length below
+		df_lineitem =
+				PROTECT(
+						create_df(14, tdefs[ORDER_LINE].base * scale * 4.5, names_arr, types_arr));
+
 	}
 	/*
 	 * traverse the tables, invoking the appropriate data generation routine for any to be built
@@ -495,21 +537,27 @@ static SEXP dbgen_R(SEXP sf) {
 	}
 
 	// Special case, lineitem's length varies randomly
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < LENGTH(df_lineitem); i++) {
 		SEXP el = VECTOR_ELT(df_lineitem, i);
 		SET_LENGTH(el, off_lineitem);
 		SET_VECTOR_ELT(df_lineitem, i, el);
 	}
 	set_df_len(df_lineitem, off_lineitem);
 
+
 	// set date class manually for order/lineitem cols
 	SET_CLASS(VECTOR_ELT(df_order, 4), dateClass);
 
-	SET_CLASS(VECTOR_ELT(df_lineitem, 10), dateClass);
-	SET_CLASS(VECTOR_ELT(df_lineitem, 11), dateClass);
-	SET_CLASS(VECTOR_ELT(df_lineitem, 12), dateClass);
-
-	// TODO: option to not create comments?
+	if (!lean) {
+		SET_CLASS(VECTOR_ELT(df_lineitem, 10), dateClass);
+		SET_CLASS(VECTOR_ELT(df_lineitem, 11), dateClass);
+		SET_CLASS(VECTOR_ELT(df_lineitem, 12), dateClass);
+	}
+	else {
+		SET_CLASS(VECTOR_ELT(df_lineitem, 9), dateClass);
+		SET_CLASS(VECTOR_ELT(df_lineitem, 10), dateClass);
+		SET_CLASS(VECTOR_ELT(df_lineitem, 11), dateClass);
+	}
 
 	int ntab = 8;
 	SEXP tables = PROTECT(NEW_LIST(ntab));
@@ -543,7 +591,7 @@ static SEXP dbgen_R(SEXP sf) {
 // R native routine registration
 #define CALLDEF(name, n)  {#name, (DL_FUNC) &name, n}
 static const R_CallMethodDef R_CallDef[] = {
-CALLDEF(dbgen_R, 1), { NULL, NULL, 0 } };
+CALLDEF(dbgen_R, 2), { NULL, NULL, 0 } };
 
 void R_init_tpchr(DllInfo *dll) {
 	R_registerRoutines(dll, NULL, R_CallDef, NULL, NULL);

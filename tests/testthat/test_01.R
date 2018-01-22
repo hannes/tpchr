@@ -3,7 +3,7 @@ library(dplyr)
 library(tpchr)
 library(DBI)
 
-tbls <- dbgen(1)
+tbls <- dbgen(sf=1, lean=TRUE)
 
 test_that( "dplyr backed by data frames" , {
 	s <- src_df(env = list2env(tbls))

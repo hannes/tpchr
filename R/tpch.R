@@ -12,10 +12,10 @@ get_query <- function(q=1) {
     paste(readLines(system.file(sprintf("extdata/queries/q%d.sql", q), package="tpchr")), collapse="\n")
 }
 
-dbgen <- function(sf=0.01) {
+dbgen <- function(sf=0.01, lean=FALSE) {
     if (check_flag(sf) || sf < 0) stop("Need a single scale factor > 0 as parameter")
     Sys.setenv(DSS_CONFIG = system.file("extdata", package="tpchr"))
-    .Call(dbgen_R, as.numeric(sf))
+    .Call(dbgen_R, as.numeric(sf), as.logical(lean))
 }
 
 data_comparable <- function(df1, df2, dlt=.0001) {

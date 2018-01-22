@@ -4,3 +4,4 @@
 *.so
 *.o
 .settings
+*.tar.gz
