@@ -1,30 +1,4 @@
 /*
-* $Id: permute.c,v 1.3 2007/01/04 21:29:21 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: permute.c,v $
-* Revision 1.3  2007/01/04 21:29:21  jms
-* Porting changes uncovered as part of move to VS2005. No impact on data set
-*
-* Revision 1.2  2005/01/03 20:08:59  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:47  jms
-* re-establish external server
-*
-* Revision 1.1.1.1  2003/08/07 17:58:34  jms
-* recreation after CVS crash
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
-/*
 * permute.c -- a permutation generator for the query 
 *              sequences in TPC-H and TPC-R
 */
@@ -135,6 +109,7 @@ void	permute_dist(distribution *d, long stream)
 
 #ifdef TEST
 
+int
 main(int ac, char *av[])
 	{
 	long *sequence, 

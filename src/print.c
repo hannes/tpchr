@@ -1,38 +1,3 @@
-/*
-* $Id: print.c,v 1.3 2005/10/28 02:56:22 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: print.c,v $
-* Revision 1.3  2005/10/28 02:56:22  jms
-* add platform-specific printf formats to allow for DSS_HUGE data type
-*
-* Revision 1.2  2005/01/03 20:08:59  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:47  jms
-* re-establish external server
-*
-* Revision 1.4  2004/02/18 16:26:49  jms
-* 32/64 bit changes for overflow handling needed additional changes when ported back to windows
-*
-* Revision 1.3  2004/02/18 14:05:53  jms
-* porting changes for LINUX and 64 bit RNG
-*
-* Revision 1.2  2004/01/22 05:49:29  jms
-* AIX porting (AIX 5.1)
-*
-* Revision 1.1.1.1  2003/08/07 17:58:34  jms
-* recreation after CVS crash
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
 /* generate flat files for data load */
 #include <stdio.h>
 #ifndef VMS
@@ -395,7 +360,7 @@ pr_drange(int tbl, DSS_HUGE min, DSS_HUGE cnt, long num)
     static int  last_num = 0;
     static FILE *dfp = NULL;
     DSS_HUGE child = -1;
-    DSS_HUGE start, last, new;
+    DSS_HUGE new;
 
 	static DSS_HUGE rows_per_segment=0;
 	static DSS_HUGE rows_this_segment=0;
@@ -411,8 +376,6 @@ pr_drange(int tbl, DSS_HUGE min, DSS_HUGE cnt, long num)
 		rows_this_segment=0;
         }
 
-    start = MK_SPARSE(min, num/ (10000 / UPD_PCT));
-    last = start - 1;
     for (child=min; cnt > 0; child++, cnt--)
 	{
 		new = MK_SPARSE(child, num/ (10000 / UPD_PCT));
@@ -431,10 +394,8 @@ pr_drange(int tbl, DSS_HUGE min, DSS_HUGE cnt, long num)
 			}
 		}
 		PR_STRT(dfp);
-		PR_HUGE(dfp, &new);
+		PR_HUGE_LAST(dfp, &new);
 		PR_END(dfp);
-		start = new;
-		last = new;
 	}
     
     return(0);

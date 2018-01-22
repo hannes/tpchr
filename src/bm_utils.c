@@ -1,42 +1,4 @@
 /*
-* $Id: bm_utils.c,v 1.4 2006/04/12 18:00:55 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: bm_utils.c,v $
-* Revision 1.4  2006/04/12 18:00:55  jms
-* add missing parameter to call to gen_seed
-*
-* Revision 1.3  2005/10/14 23:16:54  jms
-* fix for answer set compliance
-*
-* Revision 1.2  2005/01/03 20:08:58  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:46  jms
-* re-establish external server
-*
-* Revision 1.3  2004/02/18 14:05:53  jms
-* porting changes for LINUX and 64 bit RNG
-*
-* Revision 1.2  2004/01/22 05:49:29  jms
-* AIX porting (AIX 5.1)
-*
-* Revision 1.1.1.1  2003/08/08 21:35:26  jms
-* recreation after CVS crash
-*
-* Revision 1.3  2003/08/08 21:35:26  jms
-* first integration of rng64 for o_custkey and l_partkey
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
- /*
  *
  * Various routines that handle distributions, value selections and
  * seed value management for the DSS benchmark. Current functions:
@@ -394,26 +356,30 @@ tbl_open(int tbl, char *mode)
             env_config(PATH_TAG, PATH_DFLT), PATH_SEP, tdefs[tbl].name);
 
     retcode = stat(fullpath, &fstats);
-    if (retcode && (errno != ENOENT))
-        {
-        fprintf(stderr, "stat(%s) failed.\n", fullpath);
-        exit(-1);
-        }
-    if (S_ISREG(fstats.st_mode) && !force && *mode != 'r' )
-        {
-        sprintf(prompt, "Do you want to overwrite %s ?", fullpath);
-        if (!yes_no(prompt))
-            exit(0);
-        }
-
-    if (S_ISFIFO(fstats.st_mode))
-        {
-        retcode =
-            open(fullpath, ((*mode == 'r')?O_RDONLY:O_WRONLY)|O_CREAT);
-        f = fdopen(retcode, mode);
-        }
-    else
-        f = fopen(fullpath, mode);
+    if (retcode) {
+		if (errno != ENOENT) {
+			fprintf(stderr, "stat(%s) failed.\n", fullpath);
+			exit(-1);
+		} else
+			f = fopen(fullpath, mode);  // create and open the file
+	} else {
+		/* note this code asumes we are writing but tests if mode == r -jrg */
+		if (S_ISREG(fstats.st_mode) && !force && *mode != 'r' ) {
+			sprintf(prompt, "Do you want to overwrite %s ?", fullpath);
+			if (!yes_no(prompt))
+				exit(0);
+			f = fopen(fullpath, mode);
+		} else if (S_ISFIFO(fstats.st_mode))
+			{
+			f = fopen(fullpath, mode);
+			}
+		else
+			{
+			retcode =
+				open(fullpath, ((*mode == 'r')?O_RDONLY:O_WRONLY)|O_CREAT, 0664);
+			f = fdopen(retcode, mode);
+			}
+	}
     OPEN_CHECK(f, fullpath);
 
     return (f);
@@ -453,7 +419,7 @@ dssncasecmp(char *s1, char *s2, int n)
             return ((tolower(*s1) < tolower(*s2)) ? -1 : 1);
         else if (*s1 == '\0')
             return (0);
-        return (0);
+    return (0);
 }
 
 long
@@ -560,8 +526,8 @@ set_state(int table, long sf, long procs, long step, DSS_HUGE *extra_rows)
     int i;
 	DSS_HUGE rowcount, result;
 	
-    if (sf == 0 || step == 0)
-        return(0);
+	if (sf == 0 || step == 0)
+		return(0);
 
 	rowcount = tdefs[table].base;
 	rowcount *= sf;

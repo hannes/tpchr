@@ -1,56 +1,3 @@
-/*
-* $Id: driver.c,v 1.7 2008/09/24 22:35:21 jms Exp $
-*
-* Revision History
-* ===================
-* $Log: driver.c,v $
-* Revision 1.7  2008/09/24 22:35:21  jms
-* remove build number header
-*
-* Revision 1.6  2008/09/24 22:30:29  jms
-* remove build number from default header
-*
-* Revision 1.5  2008/03/21 17:38:39  jms
-* changes for 2.6.3
-*
-* Revision 1.4  2006/04/26 23:01:10  jms
-* address update generation problems
-*
-* Revision 1.3  2005/10/28 02:54:35  jms
-* add release.h changes
-*
-* Revision 1.2  2005/01/03 20:08:58  jms
-* change line terminations
-*
-* Revision 1.1.1.1  2004/11/24 23:31:46  jms
-* re-establish external server
-*
-* Revision 1.5  2004/04/07 20:17:29  jms
-* bug #58 (join fails between order/lineitem)
-*
-* Revision 1.4  2004/02/18 16:26:49  jms
-* 32/64 bit changes for overflow handling needed additional changes when ported back to windows
-*
-* Revision 1.3  2004/01/22 05:49:29  jms
-* AIX porting (AIX 5.1)
-*
-* Revision 1.2  2004/01/22 03:54:12  jms
-* 64 bit support changes for customer address
-*
-* Revision 1.1.1.1  2003/08/08 21:50:33  jms
-* recreation after CVS crash
-*
-* Revision 1.3  2003/08/08 21:35:26  jms
-* first integration of rng64 for o_custkey and l_partkey
-*
-* Revision 1.2  2003/08/07 17:58:34  jms
-* Convery RNG to 64bit space as preparation for new large scale RNG
-*
-* Revision 1.1.1.1  2003/04/03 18:54:21  jms
-* initial checkin
-*
-*
-*/
 /* main driver for dss banchmark */
 
 #define DECLARER				/* EXTERN references get defined here */
@@ -62,6 +9,7 @@
 #include <stdlib.h>
 #if (defined(_POSIX_)||!defined(WIN32))		/* Change for Windows NT */
 #include <unistd.h>
+#include <sys/wait.h>
 #endif /* WIN32 */
 #include <stdio.h>				/* */
 #include <limits.h>
@@ -101,6 +49,7 @@
 
 #include "dss.h"
 #include "dsstypes.h"
+#include "life_noise.h"
 
 /*
 * Function prototypes
@@ -312,7 +261,8 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
   		case ORDER_LINE: 
 			mk_order (i, &o, upd_num % 10000);
 
-		  if (insert_segments  && (upd_num > 0)) {
+		  if (insert_segments  && (upd_num > 0))
+			{
 			if((upd_num / 10000) < residual_rows)
 				{
 				if((++rows_this_segment) > rows_per_segment) 
@@ -320,7 +270,8 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
 					rows_this_segment=0;
 					upd_num += 10000;					
 					}
-				} else
+				}
+			else
 				{
 				if((++rows_this_segment) >= rows_per_segment) 
 					{
@@ -328,7 +279,9 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
 					upd_num += 10000;
 					}
 				}
-		  }
+			}
+
+
 			if (set_seeds == 0)
 				tdefs[tnum].loader(&o, upd_num);
 			break;
@@ -363,7 +316,7 @@ gen_tbl (int tnum, DSS_HUGE start, DSS_HUGE count, long upd_num)
 		row_stop(tnum);
 		if (set_seeds && (i % tdefs[tnum].base) < 2)
 		{
-			printf("\nSeeds for %s at rowcount %ld\n", tdefs[tnum].comment, i);
+			printf("\nSeeds for %s at rowcount " HUGE_FORMAT "\n", tdefs[tnum].comment, i);
 			dump_seeds(tnum);
 		}
 	}
@@ -793,6 +746,6 @@ main (int ac, char **av)
 					fprintf (stderr, "done.\n");
 			}
 		}
-			
-		return (0);
+		
+	return (0);
 }
