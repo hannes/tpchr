@@ -82,12 +82,8 @@
 //#define _POSIX_C_SOURCE 200112L
 //#define _POSIX_SOURCE
 #define STDLIB_HAS_GETOPT
-<<<<<<< HEAD:src/config.h
 #define SUPPORT_64BITS
 #define DSS_HUGE long long
-=======
-#define DSS_HUGE long
->>>>>>> 463c544041d12eb536475f11054a47c0d8bd0bdd:config.h
 #define HUGE_FORMAT	"%ld"
 #define HUGE_DATE_FORMAT	"%02ld"
 #define RNG_A	6364136223846793005ull

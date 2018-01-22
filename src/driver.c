@@ -49,7 +49,6 @@
 
 #include "dss.h"
 #include "dsstypes.h"
-#include "life_noise.h"
 
 /*
 * Function prototypes

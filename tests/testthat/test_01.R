@@ -9,6 +9,8 @@ if (Sys.info()[['sysname']]=="Windows") {
 
 tbls <- dbgen(sf=1, lean=TRUE)
 
+# TODO: check that re-runs work correctly
+
 test_that( "dplyr backed by data frames" , {
 	s <- src_df(env = list2env(tbls))
 	lapply(1:10, function(n) {expect_true(test_dplyr(s, n))})
