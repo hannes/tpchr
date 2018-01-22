@@ -419,7 +419,7 @@ dssncasecmp(char *s1, char *s2, int n)
             return ((tolower(*s1) < tolower(*s2)) ? -1 : 1);
         else if (*s1 == '\0')
             return (0);
-        return (0);
+    return (0);
 }
 
 long
@@ -526,8 +526,8 @@ set_state(int table, long sf, long procs, long step, DSS_HUGE *extra_rows)
     int i;
 	DSS_HUGE rowcount, result;
 	
-    if (sf == 0 || step == 0)
-        return(0);
+	if (sf == 0 || step == 0)
+		return(0);
 
 	rowcount = tdefs[table].base;
 	rowcount *= sf;

@@ -402,9 +402,9 @@ int main(int ac, char **av)
     setup();
 
     if (!(flags & DFLT))        /* perturb the RNG */
-	    {
-	    if (!(flags & SEED))
-                rndm = (long)((unsigned)time(NULL));
+		{
+		if (!(flags & SEED))
+				rndm = (long)((unsigned)time(NULL));
 		if (rndm < 0)
 			rndm += 2147483647;
 		Seed[0].value = rndm;

@@ -746,6 +746,6 @@ main (int ac, char **av)
 					fprintf (stderr, "done.\n");
 			}
 		}
-			
-		return (0);
+		
+	return (0);
 }
