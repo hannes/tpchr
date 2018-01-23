@@ -53,6 +53,6 @@ test_dt_q[[10]] <- function(s) {
 	merge(merge(merge(s[["customer"]], s[["orders"]][o_orderdate >= "1993-10-01" & o_orderdate < "1994-01-01", ], by.x="c_custkey", by.y="o_custkey"), s[["lineitem"]][l_returnflag == "R", ], by.x="o_orderkey", by.y="l_orderkey"), s[["nation"]], by.x="c_nationkey", by.y="n_nationkey")[, .(revenue=sum(l_extendedprice * (1 - l_discount))) , by=.(c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment)][order(-rank(revenue))[1:20], .(c_custkey, c_name, revenue, c_acctbal, n_name, c_address, c_phone, c_comment)]
 }
 
-test_dt <- function(src, q, ...) {
-    data_comparable(test_dt_q[[q]](src), get_answer(q), ...)
+test_dt <- function(src, q=1, sf=1) {
+    data_comparable(test_dt_q[[q]](src), get_answer(q, sf))
 }

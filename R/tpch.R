@@ -2,9 +2,9 @@ check_flag <- function(f) {
     length(f) != 1 || is.na(f) || !is.numeric(f)
 }
 
-get_answer <- function(q=1) {
+get_answer <- function(q=1, sf=1) {
     if (check_flag(q) || q < 1 || q > 22) stop("Need a single query number 1-22 as parameter")
-    read.delim(system.file(sprintf("extdata/answers/q%d.ans", q), package="tpchr"), sep="|", stringsAsFactors=FALSE)
+    read.delim(system.file(sprintf("extdata/answers/sf%d/q%d.ans", sf, q), package="tpchr"), sep="|", stringsAsFactors=FALSE)
 }
 
 get_query <- function(q=1) {
@@ -46,6 +46,6 @@ data_comparable <- function(df1, df2, dlt=.0001) {
 }
 
 
-test_dbi <- function(con, q, ...) {
-    data_comparable(dbGetQuery(con, get_query(q)), get_answer(q), ...)
+test_dbi <- function(con, q=1, sf=1) {
+    data_comparable(dbGetQuery(con, get_query(q)), get_answer(q, sf))
 }
