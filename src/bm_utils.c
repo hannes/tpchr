@@ -344,7 +344,7 @@ tbl_open(int tbl, char *mode)
 {
     char      prompt[256];
     char      fullpath[256];
-    FILE     *f;
+    FILE     *f = NULL;
     struct stat fstats;
     int      retcode;
 

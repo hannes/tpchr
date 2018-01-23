@@ -336,6 +336,11 @@ static SEXP create_df(size_t ncol, size_t nrow, char** names_arr,
 	return df;
 }
 
+// need for consistent re-invocations, gets set in R_init_tpchr
+extern seed_t Seed[];
+seed_t Seed_backup[MAX_STREAM + 1];
+
+
 // 'inspired' by driver.c::main(). also, what a mess
 static SEXP dbgen_R(SEXP sf, SEXP leansxp) {
 	DSS_HUGE rowcnt = 0, minrow = 0;
@@ -356,12 +361,21 @@ static SEXP dbgen_R(SEXP sf, SEXP leansxp) {
 	scale = 1;
 	flt_scale = 1.0;
 	updates = 0;
-	tdefs[ORDER].base *=
-	ORDERS_PER_CUST; /* have to do this after init */
-	tdefs[LINE].base *=
-	ORDERS_PER_CUST; /* have to do this after init */
-	tdefs[ORDER_LINE].base *=
-	ORDERS_PER_CUST; /* have to do this after init */
+
+	// restore random seeds from backup
+	memcpy(Seed, Seed_backup, sizeof(seed_t) * MAX_STREAM + 1);
+
+	tdefs[PART].base = 200000;
+	tdefs[PSUPP].base = 200000;
+	tdefs[SUPP].base = 10000;
+	tdefs[CUST].base = 150000;
+	tdefs[ORDER].base = 150000  * ORDERS_PER_CUST;
+	tdefs[LINE].base = 150000 * ORDERS_PER_CUST;
+	tdefs[ORDER_LINE].base = 150000 * ORDERS_PER_CUST;
+	tdefs[PART_PSUPP].base = 200000;
+	tdefs[NATION].base = NATIONS_MAX;
+	tdefs[REGION].base = NATIONS_MAX;
+
 	children = 1;
 	d_path = NULL;
 	lean = 0;
@@ -594,6 +608,7 @@ static const R_CallMethodDef R_CallDef[] = {
 CALLDEF(dbgen_R, 2), { NULL, NULL, 0 } };
 
 void R_init_tpchr(DllInfo *dll) {
+	memcpy(Seed_backup, Seed, sizeof(seed_t) * MAX_STREAM + 1);
 	R_registerRoutines(dll, NULL, R_CallDef, NULL, NULL);
 	R_useDynamicSymbols(dll, FALSE);
 }

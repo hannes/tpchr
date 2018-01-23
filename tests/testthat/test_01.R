@@ -11,6 +11,7 @@ sf <- 0.1 # can be 0.1 (150MB) or 1 (1.5 GB)
 tbls <- dbgen(sf=sf, lean=TRUE)
 tbls_dt <- lapply(tbls, data.table::as.data.table)
 
+
 test_that("dplyr produces correct results on data.frame" , {
 	s <- dplyr::src_df(env = list2env(tbls))
 	lapply(1:10, function(n) {expect_true(test_dplyr(s, n, sf))})
@@ -42,11 +43,15 @@ test_that("dbplyr on MonetDBLite produces correct results" , {
 
 test_that("MonetDBLite produces correct results with SQL queries" , {
 	lapply(c(1:13, 15:22), function(n) {expect_true(test_dbi(con, n, sf))})
-	# q14 is broken in CRAN version, fixed in devs
+	# q14 is broken in CRAN version, fixed in dev
 })
 
 dbDisconnect(con, shutdown=T)
 
+
+test_that("dbgen is consistent between invocations" , {
+	expect_equal(dbgen(0.01), dbgen(0.01))
+})
 
 
 
