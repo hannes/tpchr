@@ -2,9 +2,10 @@ check_flag <- function(f) {
     length(f) != 1 || is.na(f) || !is.numeric(f)
 }
 
-get_answer <- function(q=1, sf=1) {
-    if (check_flag(q) || q < 1 || q > 22) stop("Need a single query number 1-22 as parameter")
-    read.delim(system.file(sprintf("extdata/answers/sf%d/q%d.ans", sf, q), package="tpchr"), sep="|", stringsAsFactors=FALSE)
+get_answer <- function(q=1, sf=0.1) {
+    if (check_flag(q) || q < 1 || q > 22) stop("Need a single query number 1-22 as query parameter")
+    if (check_flag(sf)) stop("Need a single scale factor [0.01, 0.1, 1, 10] as sf parameter")
+    read.delim(system.file(sprintf("extdata/answers/sf%s/q%d.ans", as.character(sf), as.integer(q)), package="tpchr"), sep="|", stringsAsFactors=FALSE)
 }
 
 get_query <- function(q=1) {
@@ -12,7 +13,7 @@ get_query <- function(q=1) {
     paste(readLines(system.file(sprintf("extdata/queries/q%d.sql", q), package="tpchr")), collapse="\n")
 }
 
-dbgen <- function(sf=0.01, lean=FALSE) {
+dbgen <- function(sf=0.1, lean=FALSE) {
     if (check_flag(sf) || sf < 0) stop("Need a single scale factor > 0 as parameter")
     Sys.setenv(DSS_CONFIG = system.file("extdata", package="tpchr"))
     .Call(dbgen_R, as.numeric(sf), as.logical(lean))
@@ -46,6 +47,6 @@ data_comparable <- function(df1, df2, dlt=.0001) {
 }
 
 
-test_dbi <- function(con, q=1, sf=1) {
+test_dbi <- function(con, q=1, sf=0.1) {
     data_comparable(dbGetQuery(con, get_query(q)), get_answer(q, sf))
 }

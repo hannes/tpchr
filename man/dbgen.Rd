@@ -8,7 +8,7 @@
   Generate the TPC-H tables with the given scale factor
 }
 \usage{
-dbgen(sf=0.01, lean=FALSE) 
+dbgen(sf=0.1, lean=FALSE) 
 }
 \arguments{
    \item{sf}{Scale factor, controls the size of the generated tables.}

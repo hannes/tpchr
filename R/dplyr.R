@@ -129,6 +129,6 @@ test_dplyr_q[[10]] <- function(s) {
         arrange(desc(revenue)) %>% head(20)
 }
 
-test_dplyr <- function(src, q=1, sf=1) {
+test_dplyr <- function(src, q=1, sf=0.1) {
     data_comparable(test_dplyr_q[[q]](src), get_answer(q, sf))
 }

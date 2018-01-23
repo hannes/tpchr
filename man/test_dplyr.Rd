@@ -8,12 +8,12 @@ Run benchmark queries on dplyr
   Runs the TPC-H queries using dplyr on a provided source and compare the result with the reference answer.
 }
 \usage{
-test_dplyr(src, q, ...) 
+test_dplyr(src, q, sf) 
 }
 \arguments{
    \item{src}{A dplyr source object.}
    \item{q}{Query number (1-10 for now).}
-   \item{...}{Arguments passed to downstream functions.}
+   \item{sf}{Scale factor (0.1 or 1 for now).}
   }
 \value{
   Returns true if the query result is equal to the reference answer.

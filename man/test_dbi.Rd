@@ -8,13 +8,12 @@ Run benchmark queries on DBI
   Runs the TPC-H queries using DBI on a provided connection and compare the result with the reference answer.
 }
 \usage{
-test_dbi(con, q, ...) 
+test_dbi(con, q, sf) 
 }
 \arguments{
-   \item{con}{A gBI connection object.}
+   \item{con}{A DBI connection object.}
    \item{q}{Query number (1-22 for now).}
-   \item{...}{Arguments passed to downstream functions.}
-
+   \item{sf}{Scale factor (0.1 or 1 for now).}
   }
 \value{
   Returns true if the query result is equal to the reference answer.

@@ -18,7 +18,7 @@ test_dt_q[[1]] <- function(s) {
 test_dt_q[[2]] <- function(s) {
 	inner <- merge(merge(merge(s[["partsupp"]], s[["supplier"]], by.x="ps_suppkey", by.y="s_suppkey"), s[["nation"]], by.x="s_nationkey", by.y="n_nationkey"), s[["region"]][r_name=="EUROPE",], by.x="n_regionkey", by.y="r_regionkey")
 
-	merge(merge(s[["part"]][p_size==15 & grepl(".*BRASS$", p_type),], inner, by.x="p_partkey", by.y="ps_partkey"), inner[, .(min_ps_supplycost = min(ps_supplycost)), by=ps_partkey], by.x=c("p_partkey", "ps_supplycost"), by.y=c("ps_partkey", "min_ps_supplycost"))[order(-rank(s_acctbal), n_name, s_name, p_partkey)[1:100], .(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment)]
+	head(merge(merge(s[["part"]][p_size==15 & grepl(".*BRASS$", p_type),], inner, by.x="p_partkey", by.y="ps_partkey"), inner[, .(min_ps_supplycost = min(ps_supplycost)), by=ps_partkey], by.x=c("p_partkey", "ps_supplycost"), by.y=c("ps_partkey", "min_ps_supplycost"))[order(-rank(s_acctbal), n_name, s_name, p_partkey), .(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment)], 100)
 }
 
 test_dt_q[[3]] <- function(s) {
@@ -50,9 +50,9 @@ test_dt_q[[9]] <- function(s) {
 }
 
 test_dt_q[[10]] <- function(s) {
-	merge(merge(merge(s[["customer"]], s[["orders"]][o_orderdate >= "1993-10-01" & o_orderdate < "1994-01-01", ], by.x="c_custkey", by.y="o_custkey"), s[["lineitem"]][l_returnflag == "R", ], by.x="o_orderkey", by.y="l_orderkey"), s[["nation"]], by.x="c_nationkey", by.y="n_nationkey")[, .(revenue=sum(l_extendedprice * (1 - l_discount))) , by=.(c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment)][order(-rank(revenue))[1:20], .(c_custkey, c_name, revenue, c_acctbal, n_name, c_address, c_phone, c_comment)]
+	head(merge(merge(merge(s[["customer"]], s[["orders"]][o_orderdate >= "1993-10-01" & o_orderdate < "1994-01-01", ], by.x="c_custkey", by.y="o_custkey"), s[["lineitem"]][l_returnflag == "R", ], by.x="o_orderkey", by.y="l_orderkey"), s[["nation"]], by.x="c_nationkey", by.y="n_nationkey")[, .(revenue=sum(l_extendedprice * (1 - l_discount))) , by=.(c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment)][order(-rank(revenue)), .(c_custkey, c_name, revenue, c_acctbal, n_name, c_address, c_phone, c_comment)], 20)
 }
 
-test_dt <- function(src, q=1, sf=1) {
+test_dt <- function(src, q=1, sf=0.1) {
     data_comparable(test_dt_q[[q]](src), get_answer(q, sf))
 }
