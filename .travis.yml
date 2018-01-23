@@ -10,8 +10,6 @@ r_github_packages:
    - hadley/dbplyr
    - hadley/dtplyr
    - Rdatatable/data.table
-   - r-dbi/DBI
-   - r-dbi/RSQLite
 
 after_failure:
   - ./travis-tool.sh dump_logs

@@ -33,8 +33,11 @@ environment:
 
 build_script:
   - travis-tool.sh install_deps
-#  - travis-tool.sh github_package rstats-db/DBI
-#  - travis-tool.sh github_package rstats-db/DBItest
+  - travis-tool.sh github_package hadley/dplyr
+  - travis-tool.sh github_package hadley/dbplyr
+  - travis-tool.sh github_package hadley/dtplyr
+  - travis-tool.sh github_package Rdatatable/data.table
+
 
 test_script:
   - travis-tool.sh run_tests

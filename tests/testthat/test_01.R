@@ -47,3 +47,6 @@ test_that("MonetDBLite produces correct results with SQL queries" , {
 
 dbDisconnect(con, shutdown=T)
 
+
+
+
