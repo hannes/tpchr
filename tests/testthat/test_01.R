@@ -14,7 +14,6 @@ test_that("dplyr produces correct results on data.frame" , {
 	lapply(1:10, function(n) {expect_true(test_dplyr(s, n))})
 })
 
-
 test_that("dplyr produces correct results on data.table" , {
 	s <- dplyr::src_df(env = list2env(tbls_dt))
 	lapply(1:10, function(n) {expect_true(test_dplyr(s, n))})
@@ -30,17 +29,18 @@ test_that("data.table produces correct results" , {
 	lapply(1:10, function(n) {expect_true(test_dt(tbls_dt, n))})
 })
 
-# TODO: check that re-runs work correctly
+con <- dbConnect(MonetDBLite::MonetDBLite())
+lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
 
-# TODO: SQLite
-# TODO: round-tripping dplyr/SQLite
-# TODO: join orders
+test_that("dbplyr on MonetDBLite produces correct results" , {
+	s <- MonetDBLite::src_monetdblite(con=con)
+	lapply(c(1,3,4,5,6,10), function(n) {expect_true(test_dplyr(s, n))})
+	# q2 etc. broken because of grepl()
+})
 
-
-test_that("MonetDBLite produces correct results" , {
-	con <- dbConnect(MonetDBLite::MonetDBLite())
-	lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
+test_that("MonetDBLite produces correct results with SQL queries" , {
 	lapply(c(1:13, 15:22), function(n) {expect_true(test_dbi(con, n))})
 	# q14 is broken in CRAN version, fixed in devs
-	dbDisconnect(con, shutdown=T)
 })
+
+dbDisconnect(con, shutdown=T)

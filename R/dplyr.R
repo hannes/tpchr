@@ -4,7 +4,7 @@ test_dplyr_q <- list()
 
 test_dplyr_q[[1]] <- function(s) {
     tbl(s, "lineitem") %>% 
-        filter(l_shipdate <= as.Date('1998-12-01') - 90) %>% 
+        filter(l_shipdate <= "1998-09-02") %>% 
         group_by(l_returnflag, l_linestatus) %>% 
         summarise(
             sum_qty=sum(l_quantity), 
@@ -37,8 +37,8 @@ test_dplyr_q[[2]] <- function(s) {
 
 test_dplyr_q[[3]] <- function(s) {
     tbl(s, "customer") %>% filter(c_mktsegment == "BUILDING") %>% 
-        inner_join(tbl(s, "orders") %>% filter(o_orderdate < as.Date('1995-03-15')), by=c("c_custkey" = "o_custkey")) %>% 
-            inner_join(tbl(s, "lineitem") %>% filter(l_shipdate > as.Date('1995-03-15')), by=c("o_orderkey" = "l_orderkey")) %>% 
+        inner_join(tbl(s, "orders") %>% filter(o_orderdate < "1995-03-15"), by=c("c_custkey" = "o_custkey")) %>% 
+            inner_join(tbl(s, "lineitem") %>% filter(l_shipdate > "1995-03-15"), by=c("o_orderkey" = "l_orderkey")) %>% 
             group_by(o_orderkey, o_orderdate, o_shippriority) %>% 
             summarise(revenue=sum(l_extendedprice * (1 - l_discount))) %>% 
             select(o_orderkey, revenue, o_orderdate, o_shippriority) %>% 
@@ -47,7 +47,7 @@ test_dplyr_q[[3]] <- function(s) {
 
 test_dplyr_q[[4]] <- function(s) {
     tbl(s, "orders") %>% 
-        filter(o_orderdate >= as.Date('1993-07-01'), o_orderdate < as.Date('1993-10-01')) %>% 
+        filter(o_orderdate >= "1993-07-01", o_orderdate < "1993-10-01") %>% 
         inner_join(tbl(s, "lineitem") %>% filter(l_commitdate < l_receiptdate) %>% 
                 group_by(l_orderkey) %>% summarise(), by=c("o_orderkey" = "l_orderkey")) %>% 
         group_by(o_orderpriority) %>% 
@@ -57,7 +57,7 @@ test_dplyr_q[[4]] <- function(s) {
 
 test_dplyr_q[[5]] <- function(s) {
     tbl(s, "customer") %>% 
-        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= as.Date('1994-01-01'), o_orderdate < as.Date('1995-01-01')), by=c("c_custkey" = "o_custkey")) %>% 
+        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= "1994-01-01", o_orderdate < "1995-01-01"), by=c("c_custkey" = "o_custkey")) %>% 
         inner_join(tbl(s, "lineitem"), by=c("o_orderkey" = "l_orderkey")) %>% 
         inner_join(tbl(s, "supplier"), by=c("l_suppkey" = "s_suppkey", "c_nationkey" = "s_nationkey")) %>% 
         inner_join(tbl(s, "nation"), by=c("c_nationkey" = "n_nationkey")) %>% 
@@ -68,17 +68,17 @@ test_dplyr_q[[5]] <- function(s) {
 }
 
 test_dplyr_q[[6]] <- function(s) {
-    tbl(s, "lineitem") %>% filter(l_shipdate >= as.Date('1994-01-01'), l_shipdate < as.Date('1995-01-01'), l_discount >= 0.05, l_discount <= 0.07, l_quantity < 24) %>% summarise(revenue = sum(l_extendedprice * l_discount))
+    tbl(s, "lineitem") %>% filter(l_shipdate >= "1994-01-01", l_shipdate < "1995-01-01", l_discount >= 0.05, l_discount <= 0.07, l_quantity < 24) %>% summarise(revenue = sum(l_extendedprice * l_discount))
 }
 
 test_dplyr_q[[7]] <- function(s) {
     tbl(s, "supplier") %>% 
-        inner_join(tbl(s, "lineitem") %>% filter(l_shipdate >= as.Date('1995-01-01'), l_shipdate <= as.Date('1996-12-31')), by=c("s_suppkey" = "l_suppkey")) %>% 
+        inner_join(tbl(s, "lineitem") %>% filter(l_shipdate >= "1995-01-01", l_shipdate <= "1996-12-31"), by=c("s_suppkey" = "l_suppkey")) %>% 
         inner_join(tbl(s, "orders"), by=c("l_orderkey" = "o_orderkey")) %>% 
         inner_join(tbl(s, "customer"), by=c("o_custkey" = "c_custkey")) %>% 
         inner_join(tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_name=n_name), by=c("s_nationkey"="n1_nationkey")) %>% 
         inner_join(tbl(s, "nation") %>% select(n2_nationkey=n_nationkey, n2_name=n_name), by=c("c_nationkey"="n2_nationkey")) %>% 
-        filter((n1_name=='FRANCE' & n2_name == 'GERMANY') | (n1_name=='GERMANY' & n2_name == 'FRANCE')) %>% 
+        filter((n1_name=="FRANCE" & n2_name == "GERMANY") | (n1_name=="GERMANY" & n2_name == "FRANCE")) %>% 
         mutate(supp_nation=n1_name, cust_nation=n2_name, l_year=as.integer(format(l_shipdate, "%Y")), volume=l_extendedprice * (1 - l_discount)) %>% 
         select(supp_nation, cust_nation, l_year, volume) %>% 
         group_by(supp_nation, cust_nation, l_year) %>% 
@@ -91,7 +91,7 @@ test_dplyr_q[[8]] <- function(s) {
         filter(p_type == "ECONOMY ANODIZED STEEL") %>% 
         inner_join(tbl(s, "lineitem"), by=c("p_partkey"="l_partkey")) %>% 
         inner_join(tbl(s, "supplier"), by=c("l_suppkey" = "s_suppkey")) %>% 
-        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= as.Date('1995-01-01'), o_orderdate <= as.Date('1996-12-31')), by=c("l_orderkey"="o_orderkey")) %>% 
+        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= "1995-01-01", o_orderdate <= "1996-12-31"), by=c("l_orderkey"="o_orderkey")) %>% 
         inner_join(tbl(s, "customer"), by=c("o_custkey"="c_custkey")) %>% 
         inner_join(tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_regionkey=n_regionkey), by=c("c_nationkey"="n1_nationkey")) %>% 
         inner_join(tbl(s, "region") %>% filter(r_name=="AMERICA"), by=c("n1_regionkey"="r_regionkey")) %>% 
@@ -120,7 +120,7 @@ test_dplyr_q[[9]] <- function(s) {
 
 test_dplyr_q[[10]] <- function(s) {
     tbl(s, "customer") %>% 
-        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= as.Date('1993-10-01'), o_orderdate < as.Date('1994-01-01')), by=c("c_custkey" = "o_custkey")) %>% 
+        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= "1993-10-01", o_orderdate < "1994-01-01"), by=c("c_custkey" = "o_custkey")) %>% 
         inner_join(tbl(s, "lineitem") %>% filter(l_returnflag == "R"), by=c("o_orderkey" = "l_orderkey")) %>% 
         inner_join(tbl(s, "nation"), by=c("c_nationkey" = "n_nationkey")) %>% 
         group_by(c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment) %>% 
