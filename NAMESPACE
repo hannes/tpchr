@@ -1,3 +1,4 @@
 import(DBI, dplyr, utils)
-export(dbgen, test_dplyr, test_dbi)
+import(data.table, except=c(first, last, between))
+export(dbgen, test_dplyr, test_dbi, test_dt)
 useDynLib(tpchr, .registration = TRUE)

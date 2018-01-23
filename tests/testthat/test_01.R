@@ -1,5 +1,4 @@
 library(testthat)
-library(dplyr)
 library(tpchr)
 library(DBI)
 
@@ -8,17 +7,40 @@ if (Sys.info()[['sysname']]=="Windows") {
 }
 
 tbls <- dbgen(sf=1, lean=TRUE)
+tbls_dt <- lapply(tbls, data.table::as.data.table)
 
-# TODO: check that re-runs work correctly
-
-test_that( "dplyr backed by data frames" , {
-	s <- src_df(env = list2env(tbls))
+test_that("dplyr produces correct results on data.frame" , {
+	s <- dplyr::src_df(env = list2env(tbls))
 	lapply(1:10, function(n) {expect_true(test_dplyr(s, n))})
 })
 
-test_that( "MonetDBLite" , {
+
+test_that("dplyr produces correct results on data.table" , {
+	s <- dplyr::src_df(env = list2env(tbls_dt))
+	lapply(1:10, function(n) {expect_true(test_dplyr(s, n))})
+})
+
+test_that("dplyr produces correct results using dtplyr" , {
+	s <- dtplyr::src_dt(env = list2env(tbls_dt))
+	lapply(c(1,2,3,5,6,7,8,9), function(n) {expect_true(test_dplyr(s, n))})
+	# query 4 and 10 are broken in dev
+})
+
+test_that("data.table produces correct results" , {
+	lapply(1:10, function(n) {expect_true(test_dt(tbls_dt, n))})
+})
+
+# TODO: check that re-runs work correctly
+
+# TODO: SQLite
+# TODO: round-tripping dplyr/SQLite
+# TODO: join orders
+
+
+test_that("MonetDBLite produces correct results" , {
 	con <- dbConnect(MonetDBLite::MonetDBLite())
 	lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
 	lapply(c(1:13, 15:22), function(n) {expect_true(test_dbi(con, n))})
+	# q14 is broken in CRAN version, fixed in devs
 	dbDisconnect(con, shutdown=T)
 })

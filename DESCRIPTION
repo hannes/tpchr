@@ -7,6 +7,6 @@ Description: Wraps the Transaction Processing Council's Decision Support Benchma
 License: MPL (== 2.0)
 URL: https://github.com/hannesmuehleisen/tpchr
 Depends: R (>= 3.2.0)
-Imports: DBI, dplyr, utils
-Suggests: testthat, MonetDBLite, RSQLite
-Collate: tpch.R
+Imports: DBI, dplyr, utils, data.table
+Suggests: testthat, MonetDBLite, RSQLite, dtplyr, dbplyr
+Collate: dplyr.R dt.R tpch.R
