@@ -109,6 +109,7 @@ fake_a_rnd(int min, int max, int column)
 long 
 sd_part(int child, DSS_HUGE skip_count)
 {
+	(void) child;
    int i;
  
    for (i=P_MFG_SD; i<= P_CNTR_SD; i++)
@@ -150,6 +151,7 @@ sd_line(int child, DSS_HUGE skip_count)
 long 
 sd_order(int child, DSS_HUGE skip_count)        
 {
+	(void) child;
 	ADVANCE_STREAM(O_LCNT_SD, skip_count);
 /*
 	if (scale >= 30000)
@@ -169,6 +171,8 @@ sd_order(int child, DSS_HUGE skip_count)
 long
 sd_psupp(int child, DSS_HUGE skip_count)
 	{
+	(void) child;
+
 	int j;
 	
 	for (j=0; j < SUPP_PER_PART; j++)
@@ -184,7 +188,8 @@ sd_psupp(int child, DSS_HUGE skip_count)
 long 
 sd_cust(int child, DSS_HUGE skip_count)
 {
-   
+	(void) child;
+
    ADVANCE_STREAM(C_ADDR_SD, skip_count * 9);
    ADVANCE_STREAM(C_CMNT_SD, skip_count * 2);
    ADVANCE_STREAM(C_NTRG_SD, skip_count);
@@ -197,6 +202,8 @@ sd_cust(int child, DSS_HUGE skip_count)
 long
 sd_supp(int child, DSS_HUGE skip_count)
 {
+	(void) child;
+
    ADVANCE_STREAM(S_NTRG_SD, skip_count);
    ADVANCE_STREAM(S_PHNE_SD, 3L * skip_count);
    ADVANCE_STREAM(S_ABAL_SD, skip_count);

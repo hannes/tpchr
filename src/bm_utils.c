@@ -105,7 +105,7 @@ long
 yes_no(char *prompt)
 {
     char      reply[128];
-
+    (void) prompt;
 #ifdef WIN32
 /* Disable warning about conditional expression is constant */ 
 #pragma warning(disable:4127)

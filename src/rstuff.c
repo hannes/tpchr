@@ -4,6 +4,7 @@
 #include "dss.h"
 #include "dsstypes.h"
 
+
 #define RSTR(somestr) mkCharCE(somestr, CE_UTF8)
 
 #define APPEND_INTSXP(val) INTEGER_POINTER(VECTOR_ELT(as, col++))[of] = (int) val;
@@ -68,6 +69,7 @@ static int date_to_int(char* datestr) {
 static char lean = 0;
 
 static int append_region(code_t *c, int mode) {
+	(void) mode;
 	int col = 0;
 	SEXP as = df_region;
 	size_t of = off_region;
@@ -84,6 +86,8 @@ static SEXP df_nation = NULL;
 static size_t off_nation = 0;
 
 static int append_nation(code_t *c, int mode) {
+	(void) mode;
+
 	int col = 0;
 	SEXP as = df_nation;
 	size_t of = off_nation;
@@ -101,6 +105,8 @@ static SEXP df_part = NULL;
 static size_t off_part = 0;
 
 static int append_part(part_t *part, int mode) {
+	(void) mode;
+
 	int col = 0;
 	SEXP as = df_part;
 	size_t of = off_part;
@@ -124,6 +130,8 @@ static SEXP df_psupp = NULL;
 static size_t off_psupp = 0;
 
 static int append_psupp(part_t *part, int mode) {
+	(void) mode;
+
 	SEXP as = df_psupp;
 
 	for (size_t i = 0; i < SUPP_PER_PART; i++) {
@@ -144,6 +152,8 @@ static int append_psupp(part_t *part, int mode) {
 }
 
 static int append_part_psupp(part_t *part, int mode) {
+	(void) mode;
+
 	append_part(part, mode);
 	append_psupp(part, mode);
 	return (0);
@@ -153,6 +163,8 @@ static SEXP df_order = NULL;
 static size_t off_order = 0;
 
 static int append_order(order_t *o, int mode) {
+	(void) mode;
+
 	int col = 0;
 	SEXP as = df_order;
 	size_t of = off_order;
@@ -181,9 +193,11 @@ static SEXP df_lineitem = NULL;
 static size_t off_lineitem = 0;
 
 static int append_line(order_t *o, int mode) {
+	(void) mode;
+
 	SEXP as = df_lineitem;
 
-	for (size_t i = 0; i < o->lines; i++) {
+	for (DSS_HUGE i = 0; i < o->lines; i++) {
 		int col = 0;
 		size_t of = off_lineitem;
 
@@ -217,6 +231,8 @@ static int append_line(order_t *o, int mode) {
 }
 
 static int append_order_line(order_t *o, int mode) {
+	(void) mode;
+
 	append_order(o, mode);
 	append_line(o, mode);
 
@@ -227,6 +243,8 @@ static SEXP df_cust = NULL;
 static size_t off_cust = 0;
 
 static int append_cust(customer_t *c, int mode) {
+	(void) mode;
+
 	int col = 0;
 	SEXP as = df_cust;
 	size_t of = off_cust;
@@ -249,6 +267,7 @@ static SEXP df_supp = NULL;
 static size_t off_supp = 0;
 
 static int append_supp(supplier_t *supp, int mode) {
+	(void) mode;
 	int col = 0;
 	SEXP as = df_supp;
 	size_t of = off_supp;

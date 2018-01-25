@@ -46,6 +46,7 @@ dss_random(DSS_HUGE *tgt, DSS_HUGE lower, DSS_HUGE upper, long stream)
 void
 row_start(int t)	\
 {
+	(void) t;
 	int i;
 	for (i=0; i <= MAX_STREAM; i++) 
 		Seed[i].usage = 0 ; 

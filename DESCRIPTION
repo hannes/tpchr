@@ -1,5 +1,5 @@
 Package: tpchr
-Version: 0.0.2
+Version: 0.0.3
 Title: R version of TPC-H's dbgen
 Author: Hannes Muehleisen [aut, cre]
 Maintainer: Hannes Muehleisen <hannes@cwi.nl>
