@@ -71,19 +71,26 @@ test_dplyr_q[[6]] <- function(s) {
     tbl(s, "lineitem") %>% filter(l_shipdate >= "1994-01-01", l_shipdate < "1995-01-01", l_discount >= 0.05, l_discount <= 0.07, l_quantity < 24) %>% summarise(revenue = sum(l_extendedprice * l_discount))
 }
 
+# optimized using the VectorWise query plan from here: https://homepages.cwi.nl/~boncz/webresults/data/perf/tpch100_ct_1.tqdir/graphs.current/07.gif
 test_dplyr_q[[7]] <- function(s) {
-    tbl(s, "supplier") %>% 
-        inner_join(tbl(s, "lineitem") %>% filter(l_shipdate >= "1995-01-01", l_shipdate <= "1996-12-31"), by=c("s_suppkey" = "l_suppkey")) %>% 
-        inner_join(tbl(s, "orders"), by=c("l_orderkey" = "o_orderkey")) %>% 
-        inner_join(tbl(s, "customer"), by=c("o_custkey" = "c_custkey")) %>% 
-        inner_join(tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_name=n_name), by=c("s_nationkey"="n1_nationkey")) %>% 
-        inner_join(tbl(s, "nation") %>% select(n2_nationkey=n_nationkey, n2_name=n_name), by=c("c_nationkey"="n2_nationkey")) %>% 
+    sn <- inner_join(tbl(s, "supplier") %>% select(s_nationkey, s_suppkey), tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_name=n_name) %>% filter(n1_name %in% c("FRANCE", "GERMANY")), by=c("s_nationkey"="n1_nationkey")) %>% select(s_suppkey, n1_name)
+
+    cn <- inner_join(tbl(s, "customer") %>% select(c_custkey, c_nationkey), tbl(s, "nation") %>% select(n2_nationkey=n_nationkey, n2_name=n_name) %>% filter(n2_name %in% c("FRANCE", "GERMANY")), by=c("c_nationkey"="n2_nationkey")) %>% select(c_custkey, n2_name) 
+
+    cno <- inner_join(tbl(s, "orders") %>% select(o_custkey, o_orderkey), cn, by=c("o_custkey"="c_custkey")) %>% select (o_orderkey, n2_name)
+
+    cnol <- inner_join(tbl(s, "lineitem") %>% select(l_orderkey, l_suppkey, l_shipdate, l_extendedprice, l_discount) %>% filter(l_shipdate >= "1995-01-01", l_shipdate <= "1996-12-31"), cno, by=c("l_orderkey"="o_orderkey")) %>% select(l_suppkey, l_shipdate, l_extendedprice, l_discount, n2_name)
+
+    all <- inner_join(cnol, sn, by=c("l_suppkey"="s_suppkey")) 
+
+    aggr <- all %>% 
         filter((n1_name=="FRANCE" & n2_name == "GERMANY") | (n1_name=="GERMANY" & n2_name == "FRANCE")) %>% 
         mutate(supp_nation=n1_name, cust_nation=n2_name, l_year=as.integer(format(l_shipdate, "%Y")), volume=l_extendedprice * (1 - l_discount)) %>% 
-        select(supp_nation, cust_nation, l_year, volume) %>% 
-        group_by(supp_nation, cust_nation, l_year) %>% 
-        summarise(revenue=sum(volume)) %>% 
-        arrange(supp_nation, cust_nation, l_year)
+            select(supp_nation, cust_nation, l_year, volume) %>% 
+            group_by(supp_nation, cust_nation, l_year) %>% 
+            summarise(revenue=sum(volume)) %>% 
+            arrange(supp_nation, cust_nation, l_year)
+    aggr
 }
 
 test_dplyr_q[[8]] <- function(s) {

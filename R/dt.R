@@ -37,9 +37,25 @@ test_dt_q[[6]] <- function(s) {
 	s[["lineitem"]][l_shipdate >= "1994-01-01" & l_shipdate < "1995-01-01" & l_discount >= 0.05 & l_discount <= 0.07 & l_quantity < 24, .(revenue = sum(l_extendedprice * l_discount))]
 }
 
+
+# optimized using the VectorWise query plan from here: https://homepages.cwi.nl/~boncz/webresults/data/perf/tpch100_ct_1.tqdir/graphs.current/07.gif
 test_dt_q[[7]] <- function(s) {
-	merge(merge(merge(merge(merge(s[["supplier"]], s[["lineitem"]][l_shipdate >= "1995-01-01" & l_shipdate <= "1996-12-31"], by.x="s_suppkey", by.y="l_suppkey"), s[["orders"]], by.x="l_orderkey", by.y="o_orderkey"), s[["customer"]], by.x="o_custkey", by.y="c_custkey"), s[["nation"]][, .(n1_nationkey=n_nationkey, n1_name=n_name)], by.x="s_nationkey", by.y="n1_nationkey"), s[["nation"]][, .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="c_nationkey", by.y="n2_nationkey")[(n1_name=="FRANCE" & n2_name == "GERMANY") | (n1_name=="GERMANY" & n2_name == "FRANCE"), .(supp_nation=n1_name, cust_nation=n2_name, l_year=as.integer(format(l_shipdate, "%Y")), volume=l_extendedprice * (1 - l_discount))][, .(revenue=sum(volume)), by=.(supp_nation, cust_nation, l_year)][order(supp_nation, cust_nation, l_year), ]
+	cn <- merge(s[["customer"]][, .(c_custkey, c_nationkey)], s[["nation"]][n_name %in% c("FRANCE", "GERMANY"), .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="c_nationkey", by.y="n2_nationkey")[, .(c_custkey, n2_name)]
+
+    cno <- merge(s[["orders"]][, .(o_custkey, o_orderkey)], cn, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, n2_name)]
+
+    cnol <- merge(s[["lineitem"]][l_shipdate >= "1995-01-01" & l_shipdate <= "1996-12-31", .(l_orderkey, l_suppkey, l_shipdate, l_extendedprice, l_discount)], cno, by.x="l_orderkey", by.y="o_orderkey")[, .(l_suppkey, l_shipdate, l_extendedprice, l_discount, n2_name)]
+
+    sn <- merge(s[["supplier"]][, .(s_nationkey, s_suppkey)], s[["nation"]][n_name %in% c("FRANCE", "GERMANY"), .(n1_nationkey=n_nationkey, n1_name=n_name)], by.x="s_nationkey", by.y="n1_nationkey")[, .(s_suppkey, n1_name)]
+
+    all <- merge(cnol, sn, by.x="l_suppkey", by.y="s_suppkey")
+
+    aggr <- all[(n1_name=="FRANCE" & n2_name == "GERMANY") | (n1_name=="GERMANY" & n2_name == "FRANCE"), .(supp_nation=n1_name, cust_nation=n2_name, l_year=as.integer(format(l_shipdate, "%Y")), volume=l_extendedprice * (1 - l_discount))][, .(revenue=sum(volume)), by=.(supp_nation, cust_nation, l_year)][order(supp_nation, cust_nation, l_year), ]
+
+    aggr
 }
+
+
 
 test_dt_q[[8]] <- function(s) {
 	merge(merge(merge(merge(merge(merge(merge(s[["part"]][p_type == "ECONOMY ANODIZED STEEL", ], s[["lineitem"]], by.x="p_partkey", by.y="l_partkey"), s[["supplier"]], by.x="l_suppkey", by.y="s_suppkey"), s[["orders"]][o_orderdate >= "1995-01-01" & o_orderdate <= "1996-12-31", ], by.x="l_orderkey", by.y="o_orderkey"), s[["customer"]], by.x="o_custkey", by.y="c_custkey"), s[["nation"]][, .(n1_nationkey=n_nationkey, n1_regionkey=n_regionkey)], by.x="c_nationkey", by.y="n1_nationkey"), s[["region"]][r_name=="AMERICA", ], by.x="n1_regionkey", by.y="r_regionkey"), s[["nation"]][, .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="s_nationkey", by.y= "n2_nationkey")[, .(o_year=as.integer(format(o_orderdate, "%Y")), volume=l_extendedprice * (1 - l_discount), nation=n2_name)][order(o_year), .(mkt_share=sum(ifelse(nation=="BRAZIL", volume, 0))/sum(volume)), by=.(o_year)]
