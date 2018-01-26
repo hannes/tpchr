@@ -35,40 +35,48 @@ test_dplyr_q[[2]] <- function(s) {
         arrange(desc(s_acctbal), n_name, s_name, p_partkey) %>% head(100)
 }
 
+# optimized
 test_dplyr_q[[3]] <- function(s) {
-    tbl(s, "customer") %>% filter(c_mktsegment == "BUILDING") %>% 
-        inner_join(tbl(s, "orders") %>% filter(o_orderdate < "1995-03-15"), by=c("c_custkey" = "o_custkey")) %>% 
-            inner_join(tbl(s, "lineitem") %>% filter(l_shipdate > "1995-03-15"), by=c("o_orderkey" = "l_orderkey")) %>% 
-            group_by(o_orderkey, o_orderdate, o_shippriority) %>% 
-            summarise(revenue=sum(l_extendedprice * (1 - l_discount))) %>% 
+    oc <- inner_join(tbl(s, "orders") %>% select(o_orderkey, o_custkey, o_orderdate, o_shippriority) %>% filter(o_orderdate < "1995-03-15"), tbl(s, "customer") %>% select(c_custkey, c_mktsegment) %>% filter(c_mktsegment == "BUILDING"), by=c("o_custkey" = "c_custkey")) %>% select(o_orderkey, o_orderdate, o_shippriority)
+
+    loc <- inner_join(tbl(s, "lineitem") %>% select(l_orderkey, l_shipdate, l_extendedprice, l_discount) %>% filter(l_shipdate > "1995-03-15") %>% select(l_orderkey,  l_extendedprice, l_discount), oc, by=c("l_orderkey"="o_orderkey")) %>% mutate(o_orderkey=l_orderkey)
+
+    aggr <- loc %>% group_by(o_orderkey, o_orderdate, o_shippriority) %>% summarise(revenue=sum(l_extendedprice * (1 - l_discount))) %>% 
             select(o_orderkey, revenue, o_orderdate, o_shippriority) %>% 
             arrange(desc(revenue), o_orderdate) %>% head(10)
+    aggr
 }
 
+# optimized
 test_dplyr_q[[4]] <- function(s) {
-    tbl(s, "orders") %>% 
-        filter(o_orderdate >= "1993-07-01", o_orderdate < "1993-10-01") %>% 
-        inner_join(tbl(s, "lineitem") %>% filter(l_commitdate < l_receiptdate) %>% 
-                group_by(l_orderkey) %>% summarise(), by=c("o_orderkey" = "l_orderkey")) %>% 
-        group_by(o_orderpriority) %>% 
-        summarise(order_count=n()) %>% 
-        arrange(o_orderpriority)
+    l <- tbl(s, "lineitem") %>% select(l_orderkey, l_commitdate, l_receiptdate) %>% filter(l_commitdate < l_receiptdate) %>% select(l_orderkey) 
+    o <- tbl(s, "orders") %>% select(o_orderkey, o_orderdate, o_orderpriority) %>% filter(o_orderdate >= "1993-07-01", o_orderdate < "1993-10-01") %>% select(o_orderkey, o_orderpriority)
+    # distinct after join, tested and indeed faster
+    lo <- inner_join(l, o, by=c("l_orderkey"="o_orderkey")) %>% distinct() %>% select(o_orderpriority)
+    aggr <- lo %>% group_by(o_orderpriority) %>% summarise(order_count=n()) %>% arrange(o_orderpriority)
+    aggr
 }
 
+# optimized
 test_dplyr_q[[5]] <- function(s) {
-    tbl(s, "customer") %>% 
-        inner_join(tbl(s, "orders") %>% filter(o_orderdate >= "1994-01-01", o_orderdate < "1995-01-01"), by=c("c_custkey" = "o_custkey")) %>% 
-        inner_join(tbl(s, "lineitem"), by=c("o_orderkey" = "l_orderkey")) %>% 
-        inner_join(tbl(s, "supplier"), by=c("l_suppkey" = "s_suppkey", "c_nationkey" = "s_nationkey")) %>% 
-        inner_join(tbl(s, "nation"), by=c("c_nationkey" = "n_nationkey")) %>% 
-        inner_join(tbl(s, "region") %>% filter(r_name == "ASIA"), by=c("n_regionkey"="r_regionkey")) %>% 
-        group_by(n_name) %>% 
+    nr <- inner_join(tbl(s, "nation") %>% select(n_nationkey, n_regionkey, n_name), tbl(s, "region") %>% select(r_regionkey, r_name) %>% filter(r_name == "ASIA"), by=c("n_regionkey"="r_regionkey")) %>% select(n_nationkey, n_name)
+    snr <-  inner_join(tbl(s, "supplier") %>% select(s_suppkey, s_nationkey), nr, by=c("s_nationkey"= "n_nationkey")) %>% select(s_suppkey, s_nationkey, n_name)
+    lsnr <- inner_join(tbl(s, "lineitem") %>% select(l_suppkey, l_orderkey, l_extendedprice, l_discount), snr, by=c("l_suppkey" = "s_suppkey"))
+    o <- tbl(s, "orders") %>% select(o_orderdate, o_orderkey, o_custkey) %>% filter(o_orderdate >= "1994-01-01", o_orderdate < "1995-01-01") %>% select(o_orderkey, o_custkey)
+    oc <- inner_join(o, tbl(s, "customer") %>% select(c_custkey, c_nationkey), by=c("o_custkey" = "c_custkey")) %>% select(o_orderkey, c_nationkey)
+    all <- inner_join(lsnr, oc, by=c("l_orderkey" = "o_orderkey", "s_nationkey" = "c_nationkey")) %>% select(l_extendedprice, l_discount, n_name)
+    aggr <- all %>% group_by(n_name) %>% 
         summarise(revenue = sum(l_extendedprice * (1 - l_discount))) %>% 
         arrange(desc(revenue))
 }
 
+# optimized
 test_dplyr_q[[6]] <- function(s) {
-    tbl(s, "lineitem") %>% filter(l_shipdate >= "1994-01-01", l_shipdate < "1995-01-01", l_discount >= 0.05, l_discount <= 0.07, l_quantity < 24) %>% summarise(revenue = sum(l_extendedprice * l_discount))
+    tbl(s, "lineitem") %>% 
+        select(l_shipdate, l_extendedprice, l_discount, l_quantity) %>% 
+        filter(l_shipdate >= "1994-01-01", l_shipdate < "1995-01-01", l_discount >= 0.05, l_discount <= 0.07, l_quantity < 24) %>% 
+        select(l_extendedprice, l_discount, l_quantity) %>% 
+        summarise(revenue = sum(l_extendedprice * l_discount))
 }
 
 # optimized using the VectorWise query plan from here: https://homepages.cwi.nl/~boncz/webresults/data/perf/tpch100_ct_1.tqdir/graphs.current/07.gif
