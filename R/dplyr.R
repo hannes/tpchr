@@ -105,6 +105,7 @@ test_dplyr_q[[7]] <- function(s) {
     aggr
 }
 
+# optimized
 test_dplyr_q[[8]] <- function(s) {
     nr <- inner_join(tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_regionkey=n_regionkey), tbl(s, "region") %>% select(r_regionkey, r_name) %>% filter(r_name == "AMERICA") %>% select(r_regionkey), by=c("n1_regionkey"="r_regionkey")) %>% select(n1_nationkey)
     cnr <- inner_join(tbl(s, "customer") %>% select(c_custkey, c_nationkey), nr, by=c("c_nationkey"="n1_nationkey")) %>% select(c_custkey)
@@ -121,19 +122,21 @@ test_dplyr_q[[8]] <- function(s) {
     aggr
 }
 
+# optimized
 test_dplyr_q[[9]] <- function(s) {
-    tbl(s, "part") %>% 
-        filter(grepl(".*green.*", p_name)) %>% 
-        inner_join(tbl(s, "lineitem"), by=c("p_partkey"="l_partkey")) %>% 
-        inner_join(tbl(s, "supplier"), by=c("l_suppkey"="s_suppkey")) %>% 
-        inner_join(tbl(s, "partsupp"), by=c("l_suppkey" = "ps_suppkey", "p_partkey" = "ps_partkey")) %>% 
-        inner_join(tbl(s, "orders"), by=c("l_orderkey"="o_orderkey")) %>% 
-        inner_join(tbl(s, "nation"), by=c("s_nationkey"="n_nationkey")) %>% 
+    p <- tbl(s, "part") %>% select(p_name, p_partkey) %>% filter(grepl(".*green.*", p_name)) %>% select(p_partkey)
+    psp <- inner_join(tbl(s, "partsupp") %>% select(ps_suppkey, ps_partkey, ps_supplycost), p, by=c("ps_partkey" = "p_partkey")) 
+    sn <- inner_join(tbl(s, "supplier") %>% select(s_suppkey, s_nationkey), tbl(s, "nation") %>% select(n_nationkey, n_name), by=c("s_nationkey"="n_nationkey")) %>% select(s_suppkey, n_name)
+    pspsn <- inner_join(psp, sn, by=c("ps_suppkey"="s_suppkey")) 
+    lpspsn <- inner_join(tbl(s, "lineitem") %>% select(l_suppkey, l_partkey, l_orderkey, l_extendedprice, l_discount, l_quantity), pspsn, by=c("l_suppkey" = "ps_suppkey", "l_partkey"="ps_partkey")) %>% select(l_orderkey, l_extendedprice ,l_discount, l_quantity, ps_supplycost, n_name)
+    all <- inner_join(lpspsn, tbl(s, "orders") %>% select(o_orderkey, o_orderdate), by=c("l_orderkey"="o_orderkey")) %>% select(l_extendedprice ,l_discount, l_quantity, ps_supplycost, n_name, o_orderdate)
+    aggr <- all %>%
         mutate(nation=n_name, o_year = as.integer(format(o_orderdate, "%Y")), amount = l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity) %>%
         select(nation, o_year, amount) %>%
         group_by(nation, o_year) %>%
         summarise(sum_profit=sum(amount)) %>%
         arrange(nation, desc(o_year))
+    aggr
 }
 
 test_dplyr_q[[10]] <- function(s) {
