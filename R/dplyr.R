@@ -132,7 +132,7 @@ test_dplyr_q[[10]] <- function(s) {
     o <- tbl(s, "orders") %>% select(o_orderkey, o_custkey, o_orderdate) %>% filter(o_orderdate >= "1993-10-01", o_orderdate < "1994-01-01") %>% select(o_orderkey, o_custkey)
     lo <- inner_join(l, o, by=c("l_orderkey" = "o_orderkey")) %>% select(l_extendedprice, l_discount, o_custkey)
     # first aggregate, then join with customer/nation, otherwise we need to aggr over lots of cols
-    lo_aggr <- lo %>% group_by(o_custkey) %>%  summarise(revenue=sum(l_extendedprice * (1 - l_discount)))
+    lo_aggr <- lo %>% group_by(o_custkey) %>% summarise(revenue=sum(l_extendedprice * (1 - l_discount)))
     c <- tbl(s, "customer") %>% select(c_custkey, c_nationkey, c_name, c_acctbal, c_phone, c_address, c_comment)
     loc <- inner_join(lo_aggr, c, by=c("o_custkey"="c_custkey"))
     locn <- inner_join(loc, tbl(s, "nation") %>% select(n_nationkey, n_name), by=c("c_nationkey" = "n_nationkey")) 

@@ -24,7 +24,7 @@ test_that("dplyr produces correct results on data.table" , {
 
 test_that("dplyr produces correct results using dtplyr" , {
 	s <- dtplyr::src_dt(env = list2env(tbls_dt))
-	lapply(c(1,2,3,5,6,7,8,9), function(n) {expect_true(test_dplyr(s, n, sf))})
+	lapply(1:10, function(n) {expect_true(test_dplyr(s, n, sf))})
 	# query 4 and 10 are broken in dev
 })
 
@@ -37,7 +37,7 @@ lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
 
 test_that("dbplyr on MonetDBLite produces correct results" , {
 	s <- MonetDBLite::src_monetdblite(con=con)
-	lapply(c(1,3,4,5,6), function(n) {expect_true(test_dplyr(s, n, sf))})
+	lapply(c(1,3,4,5,6,10), function(n) {expect_true(test_dplyr(s, n, sf))})
 	# q2 etc. broken because of grepl()
 })
 
