@@ -2,16 +2,20 @@ library(data.table)
 
 test_dt_q <- list()
 
+# nothing to optimize here
 test_dt_q[[1]] <- function(s) {
-	s[["lineitem"]][
+    for (n in names(s)) assign(n, s[[n]])
+
+	lineitem[
 	l_shipdate <= "1998-09-02", .(
-	sum_qty=sum(l_quantity), 
-    sum_base_price=sum(l_extendedprice), 
-    sum_disc_price=sum(l_extendedprice * (1 - l_discount)), 
-    sum_charge=sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)), 
-    avg_qty=mean(l_quantity), 
-    avg_price=mean(l_extendedprice), 
-    avg_disc=mean(l_discount), count_order=.N), 
+	sum_qty        = sum(l_quantity), 
+    sum_base_price = sum(l_extendedprice), 
+    sum_disc_price = sum(l_extendedprice * (1 - l_discount)), 
+    sum_charge     = sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)), 
+    avg_qty        = mean(l_quantity), 
+    avg_price      = mean(l_extendedprice), 
+    avg_disc       = mean(l_discount), 
+    count_order    = .N), 
     keyby=.(l_returnflag, l_linestatus)]
 }
 
@@ -21,8 +25,18 @@ test_dt_q[[2]] <- function(s) {
 	head(merge(merge(s[["part"]][p_size==15 & grepl(".*BRASS$", p_type),], inner, by.x="p_partkey", by.y="ps_partkey"), inner[, .(min_ps_supplycost = min(ps_supplycost)), by=ps_partkey], by.x=c("p_partkey", "ps_supplycost"), by.y=c("ps_partkey", "min_ps_supplycost"))[order(-rank(s_acctbal), n_name, s_name, p_partkey), .(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment)], 100)
 }
 
+# optimized
 test_dt_q[[3]] <- function(s) {
-	merge(merge(s[["customer"]][c_mktsegment == "BUILDING", ], s[["orders"]][o_orderdate < "1995-03-15", ], by.x="c_custkey", by.y="o_custkey"), s[["lineitem"]][l_shipdate > "1995-03-15"], by.x="o_orderkey", by.y="l_orderkey")[,.(revenue=sum(l_extendedprice * (1 - l_discount))), by=.(o_orderkey, o_orderdate, o_shippriority)][order(-rank(revenue), o_orderdate)[1:10], .(o_orderkey, revenue, o_orderdate, o_shippriority)]
+    for (n in names(s)) assign(n, s[[n]])
+
+    o <- orders[o_orderdate < "1995-03-15", .(o_orderkey, o_custkey, o_orderdate, o_shippriority)]
+    c <- customer[c_mktsegment == "BUILDING", .(c_custkey)]
+    oc <- merge(o, c, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, o_orderdate, o_shippriority)]
+    l <- lineitem[l_shipdate > "1995-03-15", .(l_orderkey, l_extendedprice, l_discount)]
+    # no projection after merge since the aggr will drop unneccessary cols
+    loc <- merge(l, oc, by.x="l_orderkey", by.y="o_orderkey")
+    aggr <- loc[,.(revenue=sum(l_extendedprice * (1 - l_discount))), by=.(l_orderkey, o_orderdate, o_shippriority)][order(-rank(revenue), o_orderdate)[1:10], .(l_orderkey, revenue, o_orderdate, o_shippriority)]
+    aggr
 }
 
 test_dt_q[[4]] <- function(s) {
@@ -39,12 +53,11 @@ test_dt_q[[5]] <- function(s) {
     lsnr <- merge(lineitem[, .(l_suppkey, l_orderkey, l_extendedprice, l_discount)], snr, by.x="l_suppkey", by.y="s_suppkey")
     o <- orders[o_orderdate >= "1994-01-01" & o_orderdate < "1995-01-01", .(o_orderkey, o_custkey)]
     oc <- merge(o, customer[, .(c_custkey, c_nationkey)], by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, c_nationkey)]
-    all <- merge(lsnr, oc, by.x=c("l_orderkey", "s_nationkey"), by.y=c("o_orderkey", "c_nationkey"))
-    aggr <- all[, .(revenue = sum(l_extendedprice * (1 - l_discount))), by="n_name"][order(-rank(revenue)), ]
+    # no projection after merge since the aggr will drop unneccessary cols
+    lsnroc <- merge(lsnr, oc, by.x=c("l_orderkey", "s_nationkey"), by.y=c("o_orderkey", "c_nationkey"))
+    aggr <- lsnroc[, .(revenue = sum(l_extendedprice * (1 - l_discount))), by="n_name"][order(-rank(revenue)), ]
     aggr
 }
-
-
 
 
 test_dt_q[[6]] <- function(s) {
