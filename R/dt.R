@@ -29,9 +29,23 @@ test_dt_q[[4]] <- function(s) {
 	merge(s[["orders"]][o_orderdate >= "1993-07-01" & o_orderdate < "1993-10-01", ], s[["lineitem"]][l_commitdate < l_receiptdate, .(dummy=1), by=.(l_orderkey)], by.x="o_orderkey", by.y="l_orderkey")[order(o_orderpriority),.(order_count=.N),by=.(o_orderpriority)]
 }
 
+# optimized
 test_dt_q[[5]] <- function(s) {
-	merge(merge(merge(merge(merge(s[["customer"]], s[["orders"]][o_orderdate >= "1994-01-01" & o_orderdate < "1995-01-01",], by.x="c_custkey", by.y="o_custkey"), s[["lineitem"]], by.x="o_orderkey", by.y="l_orderkey"), s[["supplier"]], by.x=c("l_suppkey", "c_nationkey"), by.y=c("s_suppkey", "s_nationkey")), s[["nation"]], by.x="c_nationkey", by.y="n_nationkey"), s[["region"]][r_name == "ASIA", ], by.x="n_regionkey", by.y="r_regionkey")[, .(revenue = sum(l_extendedprice * (1 - l_discount))), by="n_name"][order(-rank(revenue)), ]
+    for (n in names(s)) assign(n, s[[n]])
+
+    # nation & region are very small, thus no pre-projection or early filter
+    nr <- merge(nation, region, by.x="n_regionkey", by.y="r_regionkey")[r_name=="ASIA", .(n_nationkey, n_name)]
+    snr <- merge(supplier[, .(s_suppkey, s_nationkey)], nr, by.x="s_nationkey", by.y="n_nationkey")[, .(s_suppkey, s_nationkey, n_name)]
+    lsnr <- merge(lineitem[, .(l_suppkey, l_orderkey, l_extendedprice, l_discount)], snr, by.x="l_suppkey", by.y="s_suppkey")
+    o <- orders[o_orderdate >= "1994-01-01" & o_orderdate < "1995-01-01", .(o_orderkey, o_custkey)]
+    oc <- merge(o, customer[, .(c_custkey, c_nationkey)], by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, c_nationkey)]
+    all <- merge(lsnr, oc, by.x=c("l_orderkey", "s_nationkey"), by.y=c("o_orderkey", "c_nationkey"))
+    aggr <- all[, .(revenue = sum(l_extendedprice * (1 - l_discount))), by="n_name"][order(-rank(revenue)), ]
+    aggr
 }
+
+
+
 
 test_dt_q[[6]] <- function(s) {
 	s[["lineitem"]][l_shipdate >= "1994-01-01" & l_shipdate < "1995-01-01" & l_discount >= 0.05 & l_discount <= 0.07 & l_quantity < 24, .(revenue = sum(l_extendedprice * l_discount))]
@@ -40,13 +54,15 @@ test_dt_q[[6]] <- function(s) {
 
 # optimized using the VectorWise query plan from here: https://homepages.cwi.nl/~boncz/webresults/data/perf/tpch100_ct_1.tqdir/graphs.current/07.gif
 test_dt_q[[7]] <- function(s) {
-	cn <- merge(s[["customer"]][, .(c_custkey, c_nationkey)], s[["nation"]][n_name %in% c("FRANCE", "GERMANY"), .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="c_nationkey", by.y="n2_nationkey")[, .(c_custkey, n2_name)]
+    for (n in names(s)) assign(n, s[[n]])
 
-    cno <- merge(s[["orders"]][, .(o_custkey, o_orderkey)], cn, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, n2_name)]
+	cn <- merge(customer[, .(c_custkey, c_nationkey)], nation[n_name %in% c("FRANCE", "GERMANY"), .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="c_nationkey", by.y="n2_nationkey")[, .(c_custkey, n2_name)]
 
-    cnol <- merge(s[["lineitem"]][l_shipdate >= "1995-01-01" & l_shipdate <= "1996-12-31", .(l_orderkey, l_suppkey, l_shipdate, l_extendedprice, l_discount)], cno, by.x="l_orderkey", by.y="o_orderkey")[, .(l_suppkey, l_shipdate, l_extendedprice, l_discount, n2_name)]
+    cno <- merge(orders[, .(o_custkey, o_orderkey)], cn, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, n2_name)]
 
-    sn <- merge(s[["supplier"]][, .(s_nationkey, s_suppkey)], s[["nation"]][n_name %in% c("FRANCE", "GERMANY"), .(n1_nationkey=n_nationkey, n1_name=n_name)], by.x="s_nationkey", by.y="n1_nationkey")[, .(s_suppkey, n1_name)]
+    cnol <- merge(lineitem[l_shipdate >= "1995-01-01" & l_shipdate <= "1996-12-31", .(l_orderkey, l_suppkey, l_shipdate, l_extendedprice, l_discount)], cno, by.x="l_orderkey", by.y="o_orderkey")[, .(l_suppkey, l_shipdate, l_extendedprice, l_discount, n2_name)]
+
+    sn <- merge(supplier[, .(s_nationkey, s_suppkey)], nation[n_name %in% c("FRANCE", "GERMANY"), .(n1_nationkey=n_nationkey, n1_name=n_name)], by.x="s_nationkey", by.y="n1_nationkey")[, .(s_suppkey, n1_name)]
 
     all <- merge(cnol, sn, by.x="l_suppkey", by.y="s_suppkey")
 
