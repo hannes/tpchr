@@ -33,15 +33,23 @@ test_dt_q[[3]] <- function(s) {
     c <- customer[c_mktsegment == "BUILDING", .(c_custkey)]
     oc <- merge(o, c, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, o_orderdate, o_shippriority)]
     l <- lineitem[l_shipdate > "1995-03-15", .(l_orderkey, l_extendedprice, l_discount)]
-    # no projection after merge since the aggr will drop unneccessary cols
     loc <- merge(l, oc, by.x="l_orderkey", by.y="o_orderkey")
     aggr <- loc[,.(revenue=sum(l_extendedprice * (1 - l_discount))), by=.(l_orderkey, o_orderdate, o_shippriority)][order(-rank(revenue), o_orderdate)[1:10], .(l_orderkey, revenue, o_orderdate, o_shippriority)]
     aggr
 }
 
+# optimized
 test_dt_q[[4]] <- function(s) {
-	merge(s[["orders"]][o_orderdate >= "1993-07-01" & o_orderdate < "1993-10-01", ], s[["lineitem"]][l_commitdate < l_receiptdate, .(dummy=1), by=.(l_orderkey)], by.x="o_orderkey", by.y="l_orderkey")[order(o_orderpriority),.(order_count=.N),by=.(o_orderpriority)]
+    for (n in names(s)) assign(n, s[[n]])
+    
+    l <- lineitem[l_commitdate < l_receiptdate, .(l_orderkey)]
+    o <- orders[o_orderdate >= "1993-07-01" & o_orderdate < "1993-10-01", .(o_orderkey, o_orderpriority)]
+    lo <- unique(merge(l, o, by.x="l_orderkey", by.y="o_orderkey"))
+
+	aggr <- lo[order(o_orderpriority),.(order_count=.N), by=.(o_orderpriority)]
+    aggr
 }
+
 
 # optimized
 test_dt_q[[5]] <- function(s) {
@@ -53,7 +61,6 @@ test_dt_q[[5]] <- function(s) {
     lsnr <- merge(lineitem[, .(l_suppkey, l_orderkey, l_extendedprice, l_discount)], snr, by.x="l_suppkey", by.y="s_suppkey")
     o <- orders[o_orderdate >= "1994-01-01" & o_orderdate < "1995-01-01", .(o_orderkey, o_custkey)]
     oc <- merge(o, customer[, .(c_custkey, c_nationkey)], by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, c_nationkey)]
-    # no projection after merge since the aggr will drop unneccessary cols
     lsnroc <- merge(lsnr, oc, by.x=c("l_orderkey", "s_nationkey"), by.y=c("o_orderkey", "c_nationkey"))
     aggr <- lsnroc[, .(revenue = sum(l_extendedprice * (1 - l_discount))), by="n_name"][order(-rank(revenue)), ]
     aggr

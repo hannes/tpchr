@@ -43,7 +43,7 @@ test_dplyr_q[[2]] <- function(s) {
 test_dplyr_q[[3]] <- function(s) {
     oc <- inner_join(tbl(s, "orders") %>% select(o_orderkey, o_custkey, o_orderdate, o_shippriority) %>% filter(o_orderdate < "1995-03-15"), tbl(s, "customer") %>% select(c_custkey, c_mktsegment) %>% filter(c_mktsegment == "BUILDING"), by=c("o_custkey" = "c_custkey")) %>% select(o_orderkey, o_orderdate, o_shippriority)
 
-    loc <- inner_join(tbl(s, "lineitem") %>% select(l_orderkey, l_shipdate, l_extendedprice, l_discount) %>% filter(l_shipdate > "1995-03-15") %>% select(l_orderkey,  l_extendedprice, l_discount), oc, by=c("l_orderkey"="o_orderkey")) %>% mutate(o_orderkey=l_orderkey) %>% select(o_orderkey, o_orderdate, o_shippriority, l_extendedprice, l_discount)
+    loc <- inner_join(tbl(s, "lineitem") %>% select(l_orderkey, l_shipdate, l_extendedprice, l_discount) %>% filter(l_shipdate > "1995-03-15") %>% select(l_orderkey,  l_extendedprice, l_discount), oc, by=c("l_orderkey"="o_orderkey")) %>% mutate(o_orderkey=l_orderkey)
 
     aggr <- loc %>% group_by(o_orderkey, o_orderdate, o_shippriority) %>% summarise(revenue=sum(l_extendedprice * (1 - l_discount))) %>% 
             select(o_orderkey, revenue, o_orderdate, o_shippriority) %>% 
@@ -68,8 +68,8 @@ test_dplyr_q[[5]] <- function(s) {
     lsnr <- inner_join(tbl(s, "lineitem") %>% select(l_suppkey, l_orderkey, l_extendedprice, l_discount), snr, by=c("l_suppkey" = "s_suppkey"))
     o <- tbl(s, "orders") %>% select(o_orderdate, o_orderkey, o_custkey) %>% filter(o_orderdate >= "1994-01-01", o_orderdate < "1995-01-01") %>% select(o_orderkey, o_custkey)
     oc <- inner_join(o, tbl(s, "customer") %>% select(c_custkey, c_nationkey), by=c("o_custkey" = "c_custkey")) %>% select(o_orderkey, c_nationkey)
-    all <- inner_join(lsnr, oc, by=c("l_orderkey" = "o_orderkey", "s_nationkey" = "c_nationkey")) %>% select(l_extendedprice, l_discount, n_name)
-    aggr <- all %>% group_by(n_name) %>% 
+    lsnroc <- inner_join(lsnr, oc, by=c("l_orderkey" = "o_orderkey", "s_nationkey" = "c_nationkey")) %>% select(l_extendedprice, l_discount, n_name)
+    aggr <- lsnroc %>% group_by(n_name) %>% 
         summarise(revenue = sum(l_extendedprice * (1 - l_discount))) %>% 
         arrange(desc(revenue))
 }
