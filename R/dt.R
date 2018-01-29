@@ -18,11 +18,20 @@ test_dt_q[[1]] <- function(s) {
     keyby=.(l_returnflag, l_linestatus)]
 }
 
-# TODO: optimize join order
 test_dt_q[[2]] <- function(s) {
-	inner <- merge(merge(merge(s[["partsupp"]], s[["supplier"]], by.x="ps_suppkey", by.y="s_suppkey"), s[["nation"]], by.x="s_nationkey", by.y="n_nationkey"), s[["region"]][r_name=="EUROPE",], by.x="n_regionkey", by.y="r_regionkey")
+    for (n in names(s)) assign(n, s[[n]])
 
-	head(merge(merge(s[["part"]][p_size==15 & grepl(".*BRASS$", p_type),], inner, by.x="p_partkey", by.y="ps_partkey"), inner[, .(min_ps_supplycost = min(ps_supplycost)), by=ps_partkey], by.x=c("p_partkey", "ps_supplycost"), by.y=c("ps_partkey", "min_ps_supplycost"))[order(-rank(s_acctbal), n_name, s_name, p_partkey), .(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment)], 100)
+    ps <- partsupp[, .(ps_partkey, ps_suppkey, ps_supplycost)]
+    p <- part[p_size == 15 & grepl(".*BRASS$", p_type), .(p_partkey, p_mfgr)]
+    psp <- merge(ps, p, by.x="ps_partkey", by.y="p_partkey")
+    sp <- supplier[, .(s_suppkey, s_nationkey, s_acctbal, s_name, s_address, s_phone, s_comment)]
+    psps <- merge(psp, sp, by.x="ps_suppkey", by.y="s_suppkey")[, .(ps_partkey,  ps_supplycost, p_mfgr, s_nationkey, s_acctbal, s_name, s_address, s_phone, s_comment)]
+    nr <- merge(nation, region, by.x="n_regionkey", by.y="r_regionkey")[r_name=="EUROPE", .(n_nationkey, n_name)]
+    pspsnr <- merge(psps, nr, by.x="s_nationkey", by.y="n_nationkey")[, .(ps_partkey,  ps_supplycost, p_mfgr, n_name, s_acctbal, s_name, s_address, s_phone, s_comment)]
+    aggr <- pspsnr[, .(min_ps_supplycost = min(ps_supplycost)), by="ps_partkey"]
+    sj <- merge(pspsnr, aggr, by.x=c("ps_partkey", "ps_supplycost"), by.y=c("ps_partkey", "min_ps_supplycost"))
+    res <- sj[head(order(-rank(s_acctbal), n_name, s_name, ps_partkey), 100), .(s_acctbal, s_name, n_name, ps_partkey, p_mfgr, s_address, s_phone, s_comment)]
+    res
 }
 
 test_dt_q[[3]] <- function(s) {

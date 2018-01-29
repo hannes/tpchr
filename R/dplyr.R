@@ -20,23 +20,18 @@ test_dplyr_q[[1]] <- function(s) {
         arrange(l_returnflag, l_linestatus)
 }
 
-# TODO: optimize join order
 test_dplyr_q[[2]] <- function(s) {
-    # this is a manual optimization, this intermediate table is used twice.
-    inner <- tbl(s, "partsupp") %>% 
-                inner_join(tbl(s, "supplier"), by=c("ps_suppkey" = "s_suppkey")) %>% 
-                inner_join(tbl(s, "nation"), by=c("s_nationkey" = "n_nationkey")) %>% 
-                inner_join(tbl(s, "region") %>% filter(r_name=="EUROPE"), by=c("n_regionkey"="r_regionkey"))
-
-    tbl(s, "part") %>% 
-        filter(p_size == 15, grepl(".*BRASS$", p_type)) %>% 
-        inner_join(inner, by=c("p_partkey" = "ps_partkey")) %>% 
-        inner_join(inner %>% 
-                group_by(ps_partkey) %>% 
-                summarise(min_ps_supplycost = min(ps_supplycost)), 
-                by=c("p_partkey" = "ps_partkey", "ps_supplycost" = "min_ps_supplycost")) %>% 
-        select(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment) %>%
-        arrange(desc(s_acctbal), n_name, s_name, p_partkey) %>% head(100)
+    ps <- tbl(s, "partsupp") %>% select(ps_partkey, ps_suppkey, ps_supplycost)
+    p <- tbl(s, "part") %>% select(p_partkey, p_type, p_size, p_mfgr) %>% filter(p_size == 15, grepl(".*BRASS$", p_type)) %>%  select(p_partkey, p_mfgr)
+    psp <- inner_join(ps, p, by=c("ps_partkey"="p_partkey"))
+    sp <- tbl(s, "supplier") %>% select(s_suppkey, s_nationkey, s_acctbal, s_name, s_address, s_phone, s_comment)
+    psps <- inner_join(psp, sp, by=c("ps_suppkey" = "s_suppkey")) %>% select(ps_partkey,  ps_supplycost, p_mfgr, s_nationkey, s_acctbal, s_name, s_address, s_phone, s_comment)
+    nr <- inner_join(tbl(s, "nation"), tbl(s, "region") %>% filter(r_name=="EUROPE"), by=c("n_regionkey" = "r_regionkey")) %>% select(n_nationkey, n_name)
+    pspsnr <- inner_join(psps, nr, by=c("s_nationkey" = "n_nationkey")) %>% select(ps_partkey,  ps_supplycost, p_mfgr, n_name, s_acctbal, s_name, s_address, s_phone, s_comment)
+    aggr <- pspsnr %>%  group_by(ps_partkey) %>% summarise(min_ps_supplycost = min(ps_supplycost))
+    sj <- inner_join(pspsnr, aggr, c("ps_partkey" = "ps_partkey", "ps_supplycost" = "min_ps_supplycost"))
+    res <- sj %>% select(s_acctbal, s_name, n_name, ps_partkey, p_mfgr, s_address, s_phone, s_comment) %>% arrange(desc(s_acctbal), n_name, s_name, ps_partkey) %>% head(100)
+    res
 }
 
 test_dplyr_q[[3]] <- function(s) {
