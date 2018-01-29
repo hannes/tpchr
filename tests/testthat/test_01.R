@@ -37,7 +37,7 @@ lapply(names(tbls), function(n) {dbWriteTable(con, n, tbls[[n]])})
 
 test_that("dbplyr on MonetDBLite produces correct results" , {
 	s <- MonetDBLite::src_monetdblite(con=con)
-	lapply(c(1,3,4,5,6,10), function(n) {expect_true(test_dplyr(s, n, sf))})
+	lapply(c(1,3,4,5,6), function(n) {expect_true(test_dplyr(s, n, sf))})
 	# q2 etc. broken because of grepl()
 })
 

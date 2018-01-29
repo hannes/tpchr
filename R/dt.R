@@ -2,7 +2,7 @@ library(data.table)
 
 test_dt_q <- list()
 
-# nothing to optimize here
+# optimized
 test_dt_q[[1]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
@@ -19,6 +19,7 @@ test_dt_q[[1]] <- function(s) {
     keyby=.(l_returnflag, l_linestatus)]
 }
 
+# TODO: optimize join order
 test_dt_q[[2]] <- function(s) {
 	inner <- merge(merge(merge(s[["partsupp"]], s[["supplier"]], by.x="ps_suppkey", by.y="s_suppkey"), s[["nation"]], by.x="s_nationkey", by.y="n_nationkey"), s[["region"]][r_name=="EUROPE",], by.x="n_regionkey", by.y="r_regionkey")
 
@@ -50,7 +51,6 @@ test_dt_q[[4]] <- function(s) {
     aggr
 }
 
-
 # optimized
 test_dt_q[[5]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
@@ -66,13 +66,14 @@ test_dt_q[[5]] <- function(s) {
     aggr
 }
 
-
+# optimized
 test_dt_q[[6]] <- function(s) {
-	s[["lineitem"]][l_shipdate >= "1994-01-01" & l_shipdate < "1995-01-01" & l_discount >= 0.05 & l_discount <= 0.07 & l_quantity < 24, .(revenue = sum(l_extendedprice * l_discount))]
+    for (n in names(s)) assign(n, s[[n]])
+
+	lineitem[l_shipdate >= "1994-01-01" & l_shipdate < "1995-01-01" & l_discount >= 0.05 & l_discount <= 0.07 & l_quantity < 24, .(revenue = sum(l_extendedprice * l_discount))]
 }
 
-
-# optimized using the VectorWise query plan from here: https://homepages.cwi.nl/~boncz/webresults/data/perf/tpch100_ct_1.tqdir/graphs.current/07.gif
+# optimized
 test_dt_q[[7]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
@@ -102,7 +103,14 @@ test_dt_q[[9]] <- function(s) {
 }
 
 test_dt_q[[10]] <- function(s) {
-	head(merge(merge(merge(s[["customer"]], s[["orders"]][o_orderdate >= "1993-10-01" & o_orderdate < "1994-01-01", ], by.x="c_custkey", by.y="o_custkey"), s[["lineitem"]][l_returnflag == "R", ], by.x="o_orderkey", by.y="l_orderkey"), s[["nation"]], by.x="c_nationkey", by.y="n_nationkey")[, .(revenue=sum(l_extendedprice * (1 - l_discount))) , by=.(c_custkey, c_name, c_acctbal, c_phone, n_name, c_address, c_comment)][order(-rank(revenue)), .(c_custkey, c_name, revenue, c_acctbal, n_name, c_address, c_phone, c_comment)], 20)
+    for (n in names(s)) assign(n, s[[n]])
+    
+    l <- lineitem[l_returnflag == "R", .(l_orderkey, l_extendedprice, l_discount)]
+    o <- orders[o_orderdate >= "1993-10-01" & o_orderdate < "1994-01-01", .(o_orderkey, o_custkey)]
+    lo_aggr <- merge(l, o, by.x="l_orderkey", by.y="o_orderkey")[, .(revenue=sum(l_extendedprice * (1 - l_discount))), by=o_custkey]
+    c <- customer[, .(c_custkey, c_nationkey, c_name, c_acctbal, c_phone, c_address, c_comment)]
+    loc <- merge(lo_aggr, c, by.x="o_custkey", by.y="c_custkey")
+    locn <- merge(loc, nation[, .(n_nationkey, n_name)], by.x="c_nationkey", by.y="n_nationkey")[order(-rank(revenue))[1:20], .(o_custkey, c_name, revenue, c_acctbal, n_name, c_address, c_phone, c_comment)]
 }
 
 test_dt <- function(src, q=1, sf=0.1) {
