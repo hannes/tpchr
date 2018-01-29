@@ -2,7 +2,6 @@ library(dplyr)
 
 test_dplyr_q <- list()
 
-# optimized
 test_dplyr_q[[1]] <- function(s) {
     tbl(s, "lineitem") %>% 
         select(l_shipdate, l_returnflag, l_linestatus, l_quantity, l_extendedprice, l_discount, l_tax) %>%
@@ -40,7 +39,6 @@ test_dplyr_q[[2]] <- function(s) {
         arrange(desc(s_acctbal), n_name, s_name, p_partkey) %>% head(100)
 }
 
-# optimized
 test_dplyr_q[[3]] <- function(s) {
     oc <- inner_join(tbl(s, "orders") %>% select(o_orderkey, o_custkey, o_orderdate, o_shippriority) %>% filter(o_orderdate < "1995-03-15"), tbl(s, "customer") %>% select(c_custkey, c_mktsegment) %>% filter(c_mktsegment == "BUILDING"), by=c("o_custkey" = "c_custkey")) %>% select(o_orderkey, o_orderdate, o_shippriority)
 
@@ -52,7 +50,6 @@ test_dplyr_q[[3]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dplyr_q[[4]] <- function(s) {
     l <- tbl(s, "lineitem") %>% select(l_orderkey, l_commitdate, l_receiptdate) %>% filter(l_commitdate < l_receiptdate) %>% select(l_orderkey) 
     o <- tbl(s, "orders") %>% select(o_orderkey, o_orderdate, o_orderpriority) %>% filter(o_orderdate >= "1993-07-01", o_orderdate < "1993-10-01") %>% select(o_orderkey, o_orderpriority)
@@ -62,7 +59,6 @@ test_dplyr_q[[4]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dplyr_q[[5]] <- function(s) {
     nr <- inner_join(tbl(s, "nation") %>% select(n_nationkey, n_regionkey, n_name), tbl(s, "region") %>% select(r_regionkey, r_name) %>% filter(r_name == "ASIA"), by=c("n_regionkey"="r_regionkey")) %>% select(n_nationkey, n_name)
     snr <-  inner_join(tbl(s, "supplier") %>% select(s_suppkey, s_nationkey), nr, by=c("s_nationkey"= "n_nationkey")) %>% select(s_suppkey, s_nationkey, n_name)
@@ -75,7 +71,6 @@ test_dplyr_q[[5]] <- function(s) {
         arrange(desc(revenue))
 }
 
-# optimized
 test_dplyr_q[[6]] <- function(s) {
     tbl(s, "lineitem") %>% 
         select(l_shipdate, l_extendedprice, l_discount, l_quantity) %>% 
@@ -84,7 +79,6 @@ test_dplyr_q[[6]] <- function(s) {
         summarise(revenue = sum(l_extendedprice * l_discount))
 }
 
-# optimized
 test_dplyr_q[[7]] <- function(s) {
     sn <- inner_join(tbl(s, "supplier") %>% select(s_nationkey, s_suppkey), tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_name=n_name) %>% filter(n1_name %in% c("FRANCE", "GERMANY")), by=c("s_nationkey"="n1_nationkey")) %>% select(s_suppkey, n1_name)
     cn <- inner_join(tbl(s, "customer") %>% select(c_custkey, c_nationkey), tbl(s, "nation") %>% select(n2_nationkey=n_nationkey, n2_name=n_name) %>% filter(n2_name %in% c("FRANCE", "GERMANY")), by=c("c_nationkey"="n2_nationkey")) %>% select(c_custkey, n2_name) 
@@ -101,7 +95,6 @@ test_dplyr_q[[7]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dplyr_q[[8]] <- function(s) {
     nr <- inner_join(tbl(s, "nation") %>% select(n1_nationkey=n_nationkey, n1_regionkey=n_regionkey), tbl(s, "region") %>% select(r_regionkey, r_name) %>% filter(r_name == "AMERICA") %>% select(r_regionkey), by=c("n1_regionkey"="r_regionkey")) %>% select(n1_nationkey)
     cnr <- inner_join(tbl(s, "customer") %>% select(c_custkey, c_nationkey), nr, by=c("c_nationkey"="n1_nationkey")) %>% select(c_custkey)
@@ -118,7 +111,6 @@ test_dplyr_q[[8]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dplyr_q[[9]] <- function(s) {
     p <- tbl(s, "part") %>% select(p_name, p_partkey) %>% filter(grepl(".*green.*", p_name)) %>% select(p_partkey)
     psp <- inner_join(tbl(s, "partsupp") %>% select(ps_suppkey, ps_partkey, ps_supplycost), p, by=c("ps_partkey" = "p_partkey")) 
@@ -135,7 +127,6 @@ test_dplyr_q[[9]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dplyr_q[[10]] <- function(s) {
     l <- tbl(s, "lineitem") %>% select(l_orderkey, l_returnflag, l_extendedprice, l_discount) %>% filter(l_returnflag == "R") %>% select(l_orderkey, l_extendedprice, l_discount)
     o <- tbl(s, "orders") %>% select(o_orderkey, o_custkey, o_orderdate) %>% filter(o_orderdate >= "1993-10-01", o_orderdate < "1994-01-01") %>% select(o_orderkey, o_custkey)

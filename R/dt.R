@@ -2,7 +2,6 @@ library(data.table)
 
 test_dt_q <- list()
 
-# optimized
 test_dt_q[[1]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
@@ -26,7 +25,6 @@ test_dt_q[[2]] <- function(s) {
 	head(merge(merge(s[["part"]][p_size==15 & grepl(".*BRASS$", p_type),], inner, by.x="p_partkey", by.y="ps_partkey"), inner[, .(min_ps_supplycost = min(ps_supplycost)), by=ps_partkey], by.x=c("p_partkey", "ps_supplycost"), by.y=c("ps_partkey", "min_ps_supplycost"))[order(-rank(s_acctbal), n_name, s_name, p_partkey), .(s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment)], 100)
 }
 
-# optimized
 test_dt_q[[3]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
@@ -39,7 +37,6 @@ test_dt_q[[3]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dt_q[[4]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
     
@@ -51,7 +48,6 @@ test_dt_q[[4]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dt_q[[5]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
@@ -66,41 +62,58 @@ test_dt_q[[5]] <- function(s) {
     aggr
 }
 
-# optimized
 test_dt_q[[6]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
 	lineitem[l_shipdate >= "1994-01-01" & l_shipdate < "1995-01-01" & l_discount >= 0.05 & l_discount <= 0.07 & l_quantity < 24, .(revenue = sum(l_extendedprice * l_discount))]
 }
 
-# optimized
 test_dt_q[[7]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
 
 	cn <- merge(customer[, .(c_custkey, c_nationkey)], nation[n_name %in% c("FRANCE", "GERMANY"), .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="c_nationkey", by.y="n2_nationkey")[, .(c_custkey, n2_name)]
-
     cno <- merge(orders[, .(o_custkey, o_orderkey)], cn, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, n2_name)]
-
     cnol <- merge(lineitem[l_shipdate >= "1995-01-01" & l_shipdate <= "1996-12-31", .(l_orderkey, l_suppkey, l_shipdate, l_extendedprice, l_discount)], cno, by.x="l_orderkey", by.y="o_orderkey")[, .(l_suppkey, l_shipdate, l_extendedprice, l_discount, n2_name)]
-
     sn <- merge(supplier[, .(s_nationkey, s_suppkey)], nation[n_name %in% c("FRANCE", "GERMANY"), .(n1_nationkey=n_nationkey, n1_name=n_name)], by.x="s_nationkey", by.y="n1_nationkey")[, .(s_suppkey, n1_name)]
 
     all <- merge(cnol, sn, by.x="l_suppkey", by.y="s_suppkey")
-
     aggr <- all[(n1_name=="FRANCE" & n2_name == "GERMANY") | (n1_name=="GERMANY" & n2_name == "FRANCE"), .(supp_nation=n1_name, cust_nation=n2_name, l_year=as.integer(format(l_shipdate, "%Y")), volume=l_extendedprice * (1 - l_discount))][, .(revenue=sum(volume)), by=.(supp_nation, cust_nation, l_year)][order(supp_nation, cust_nation, l_year), ]
-
     aggr
 }
 
 
 
 test_dt_q[[8]] <- function(s) {
-	merge(merge(merge(merge(merge(merge(merge(s[["part"]][p_type == "ECONOMY ANODIZED STEEL", ], s[["lineitem"]], by.x="p_partkey", by.y="l_partkey"), s[["supplier"]], by.x="l_suppkey", by.y="s_suppkey"), s[["orders"]][o_orderdate >= "1995-01-01" & o_orderdate <= "1996-12-31", ], by.x="l_orderkey", by.y="o_orderkey"), s[["customer"]], by.x="o_custkey", by.y="c_custkey"), s[["nation"]][, .(n1_nationkey=n_nationkey, n1_regionkey=n_regionkey)], by.x="c_nationkey", by.y="n1_nationkey"), s[["region"]][r_name=="AMERICA", ], by.x="n1_regionkey", by.y="r_regionkey"), s[["nation"]][, .(n2_nationkey=n_nationkey, n2_name=n_name)], by.x="s_nationkey", by.y= "n2_nationkey")[, .(o_year=as.integer(format(o_orderdate, "%Y")), volume=l_extendedprice * (1 - l_discount), nation=n2_name)][order(o_year), .(mkt_share=sum(ifelse(nation=="BRAZIL", volume, 0))/sum(volume)), by=.(o_year)]
+    for (n in names(s)) assign(n, s[[n]])
+
+    nr <- merge(nation, region, by.x="n_regionkey", by.y="r_regionkey")[r_name == "AMERICA", .(n_nationkey)]
+    cnr <- merge(customer[, .(c_custkey, c_nationkey)], nr, by.x="c_nationkey", by.y="n_nationkey")[, .(c_custkey)]
+    o <- orders[o_orderdate >= "1995-01-01" & o_orderdate <= "1996-12-31", .(o_orderkey, o_custkey, o_orderdate)]
+    ocnr <- merge(o, cnr, by.x="o_custkey", by.y="c_custkey")[, .(o_orderkey, o_orderdate)]
+    locnr <- merge(lineitem[,.(l_orderkey, l_partkey, l_suppkey, l_extendedprice, l_discount)], ocnr, by.x="l_orderkey", by.y="o_orderkey")[, .(l_partkey, l_suppkey, l_extendedprice, l_discount, o_orderdate)]
+    p <- part[p_type == "ECONOMY ANODIZED STEEL", .(p_partkey)]
+    locnrp <- merge(locnr, p, by.x="l_partkey", by.y="p_partkey")[, .(l_suppkey, l_extendedprice, l_discount ,o_orderdate)]
+    locnrps <- merge(locnrp, supplier[, .(s_suppkey, s_nationkey)], by.x="l_suppkey", by.y="s_suppkey")[, .(l_extendedprice, l_discount, o_orderdate, s_nationkey)]
+    locnrpsn <- merge(locnrps, nation[, .(n_nationkey, n_name)], by.x="s_nationkey", by.y="n_nationkey")
+
+    aggr <- locnrpsn[, .(o_year=as.integer(format(o_orderdate, "%Y")), volume=l_extendedprice * (1 - l_discount), nation=n_name)][order(o_year), .(mkt_share=sum(ifelse(nation=="BRAZIL", volume, 0))/sum(volume)), by=.(o_year)]
+    aggr
 }
 
 test_dt_q[[9]] <- function(s) {
-	merge(merge(merge(merge(merge(s[["part"]][grepl(".*green.*", p_name), ], s[["lineitem"]], by.x="p_partkey", by.y="l_partkey"), s[["supplier"]], by.x="l_suppkey", by.y="s_suppkey"), s[["partsupp"]], by.x=c("l_suppkey", "p_partkey"), by.y=c("ps_suppkey", "ps_partkey")), s[["orders"]], by.x="l_orderkey", by.y="o_orderkey"), s[["nation"]], by.x="s_nationkey", by.y="n_nationkey")[, .(nation=n_name, o_year = as.integer(format(o_orderdate, "%Y")), amount = l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity)][order(nation, -rank(o_year)), .(sum_profit=sum(amount)), by=.(nation, o_year)]
+    for (n in names(s)) assign(n, s[[n]])
+
+    p <- part[grepl(".*green.*", p_name), .(p_partkey)]
+    psp <- merge(partsupp[, .(ps_suppkey, ps_partkey, ps_supplycost)], p, by.x="ps_partkey", by.y="p_partkey")
+    sn <- merge(supplier[, .(s_suppkey, s_nationkey)], nation[, .(n_nationkey, n_name)], by.x="s_nationkey", by.y="n_nationkey")[, .(s_suppkey, n_name)]
+    pspsn <- merge(psp, sn, by.x="ps_suppkey", by.y="s_suppkey")
+    lpspsn <- merge(lineitem[, .(l_suppkey, l_partkey, l_orderkey, l_extendedprice, l_discount, l_quantity)], pspsn, by.x=c("l_suppkey", "l_partkey"), by.y=c("ps_suppkey", "ps_partkey"))[, .(l_orderkey, l_extendedprice ,l_discount, l_quantity, ps_supplycost, n_name)]
+    lpspsno <- merge(lpspsn, orders[, .(o_orderkey, o_orderdate)], by.x="l_orderkey", by.y="o_orderkey")
+    aggr <- lpspsno[, .(nation=n_name, o_year = as.integer(format(o_orderdate, "%Y")), amount = l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity)][order(nation, -rank(o_year)), .(sum_profit=sum(amount)), by=.(nation, o_year)]
+    aggr
 }
+
+
 
 test_dt_q[[10]] <- function(s) {
     for (n in names(s)) assign(n, s[[n]])
