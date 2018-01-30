@@ -1,4 +1,4 @@
 PKG_CFLAGS = $(CFLAGS) $(R_XTRA_CPPFLAGS) $(CPICFLAGS) -D_FILE_OFFSET_BITS=64 -DDBNAME=dss -DMAC -DORACLE -DTPCH
 
-OBJECTS=build.o driver.o bm_utils.o rnd.o speed_seed.o text.o permute.o rng64.o rstuff.o
+OBJECTS=build.o bm_utils.o rnd.o speed_seed.o text.o permute.o rng64.o rstuff.o
 
