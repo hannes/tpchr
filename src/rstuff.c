@@ -82,7 +82,7 @@ static int append_region(code_t *c, int mode) {
 	APPEND_STRSXP(c->comment);
 
 	off_region++;
-	return (0);
+	return 0;
 }
 
 static SEXP df_nation = NULL;
@@ -101,7 +101,7 @@ static int append_nation(code_t *c, int mode) {
 	APPEND_STRSXP(c->comment);
 
 	off_nation++;
-	return (0);
+	return 0;
 }
 
 static SEXP df_part = NULL;
@@ -126,7 +126,7 @@ static int append_part(part_t *part, int mode) {
 		APPEND_STRSXP(part->comment);
 	}
 	off_part++;
-	return (0);
+	return 0;
 }
 
 static SEXP df_psupp = NULL;
@@ -150,16 +150,19 @@ static int append_psupp(part_t *part, int mode) {
 		}
 		off_psupp++;
 	}
-
-	return (0);
+	return 0;
 }
 
 static int append_part_psupp(part_t *part, int mode) {
 	(void) mode;
 
-	append_part(part, mode);
-	append_psupp(part, mode);
-	return (0);
+	if (append_part(part, mode) != 0) {
+		return -1;
+	}
+	if (append_psupp(part, mode) != 0) {
+		return -1;
+	}
+	return 0;
 }
 
 static SEXP df_order = NULL;
@@ -187,7 +190,7 @@ static int append_order(order_t *o, int mode) {
 	APPEND_STRSXP(o->comment);
 
 	off_order++;
-	return (0);
+	return 0;
 }
 
 static SEXP df_lineitem = NULL;
@@ -228,16 +231,19 @@ static int append_line(order_t *o, int mode) {
 		}
 		off_lineitem++;
 	}
-	return (0);
+	return 0;
 }
 
 static int append_order_line(order_t *o, int mode) {
 	(void) mode;
 
-	append_order(o, mode);
-	append_line(o, mode);
-
-	return (0);
+	if (append_order(o, mode) != 0) {
+		return -1;
+	}
+	if (append_line(o, mode) != 0) {
+		return -1;
+	}
+	return 0;
 }
 
 static SEXP df_cust = NULL;
@@ -260,8 +266,7 @@ static int append_cust(customer_t *c, int mode) {
 	APPEND_STRSXP(c->comment);
 
 	off_cust++;
-	return (0);
-
+	return 0;
 }
 
 static SEXP df_supp = NULL;
@@ -282,7 +287,7 @@ static int append_supp(supplier_t *supp, int mode) {
 	APPEND_STRSXP(supp->comment);
 
 	off_supp++;
-	return (0);
+	return 0;
 
 }
 
