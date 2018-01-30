@@ -11,7 +11,11 @@
 
 #define APPEND_INTSXP(val) INTEGER_POINTER(VECTOR_ELT(as, col++))[of] = (int) val;
 #define APPEND_NUMSXP(val) NUMERIC_POINTER(VECTOR_ELT(as, col++))[of] = (double) val;
-#define APPEND_STRSXP(val) SET_STRING_ELT( VECTOR_ELT(as, col++), of, RSTR(val));
+#define APPEND_STRSXP(val) { \
+	SEXP s = RSTR(val); \
+	if (!s) return -1; \
+	SET_STRING_ELT( VECTOR_ELT(as, col++), of, s); \
+}
 
 static SEXP df_region = NULL;
 static size_t off_region = 0;
