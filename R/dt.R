@@ -116,7 +116,7 @@ test_dt_q[[9]] <- function(s) {
     psp <- merge(partsupp[, .(ps_suppkey, ps_partkey, ps_supplycost)], p, by.x="ps_partkey", by.y="p_partkey")
     sn <- merge(supplier[, .(s_suppkey, s_nationkey)], nation[, .(n_nationkey, n_name)], by.x="s_nationkey", by.y="n_nationkey")[, .(s_suppkey, n_name)]
     pspsn <- merge(psp, sn, by.x="ps_suppkey", by.y="s_suppkey")
-    lpspsn <- merge(lineitem[, .(l_suppkey, l_partkey, l_orderkey, l_extendedprice, l_discount, l_quantity)], pspsn, by.x=c("l_suppkey", "l_partkey"), by.y=c("ps_suppkey", "ps_partkey"))[, .(l_orderkey, l_extendedprice ,l_discount, l_quantity, ps_supplycost, n_name)]
+    lpspsn <- merge(lineitem[, .(l_suppkey, l_partkey, l_orderkey, l_extendedprice, l_discount, l_quantity)], pspsn, by.x=c("l_partkey", "l_suppkey"), by.y=c("ps_partkey", "ps_suppkey"))[, .(l_orderkey, l_extendedprice ,l_discount, l_quantity, ps_supplycost, n_name)]
     lpspsno <- merge(lpspsn, orders[, .(o_orderkey, o_orderdate)], by.x="l_orderkey", by.y="o_orderkey")
     aggr <- lpspsno[, .(nation=n_name, o_year = as.integer(format(o_orderdate, "%Y")), amount = l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity)][order(nation, -rank(o_year)), .(sum_profit=sum(amount)), by=.(nation, o_year)]
     aggr
