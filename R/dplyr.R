@@ -87,9 +87,9 @@ test_dplyr_q[[3]] <- function(s) {
     oc, by = c("l_orderkey" = "o_orderkey")
   )
 
-  aggr <- loc %>% mutate(l_volume=l_extendedprice * (1 - l_discount)) %>%
+  aggr <- loc %>% mutate(volume=l_extendedprice * (1 - l_discount)) %>%
     group_by(l_orderkey, o_orderdate, o_shippriority) %>%
-    summarise(revenue = sum(l_volume)) %>%
+    summarise(revenue = sum(volume)) %>%
     select(l_orderkey, revenue, o_orderdate, o_shippriority) %>%
     arrange(desc(revenue), o_orderdate) %>%
     head(10)
@@ -158,8 +158,9 @@ test_dplyr_q[[5]] <- function(s) {
   select(l_extendedprice, l_discount, n_name)
 
   aggr <- lsnroc %>%
+    mutate(volume=l_extendedprice * (1 - l_discount)) %>%
     group_by(n_name) %>%
-    summarise(revenue = sum(l_extendedprice * (1 - l_discount))) %>%
+    summarise(revenue = sum(volume)) %>%
     arrange(desc(revenue))
 
   aggr
@@ -354,9 +355,9 @@ test_dplyr_q[[10]] <- function(s) {
   # first aggregate, then join with customer/nation, 
   # otherwise we need to aggr over lots of cols
   
-  lo_aggr <- lo %>% mutate(l_volume=l_extendedprice * (1 - l_discount)) %>% 
+  lo_aggr <- lo %>% mutate(volume=l_extendedprice * (1 - l_discount)) %>% 
     group_by(o_custkey) %>% 
-    summarise(revenue = sum(l_volume))
+    summarise(revenue = sum(volume))
   
   c <- tbl(s, "customer") %>% 
     select(c_custkey, c_nationkey, c_name, c_acctbal, c_phone, c_address, c_comment)
