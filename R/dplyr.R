@@ -174,7 +174,7 @@ test_dplyr_q[[6]] <- function(s) {
         l_discount >= 0.05, 
         l_discount <= 0.07, 
         l_quantity < 24) %>%
-    select(l_extendedprice, l_discount, l_quantity) %>%
+    select(l_extendedprice, l_discount) %>%
     summarise(revenue = sum(l_extendedprice * l_discount))
 }
 
