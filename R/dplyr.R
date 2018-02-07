@@ -319,10 +319,11 @@ test_dplyr_q[[9]] <- function(s) {
     by = c("l_suppkey" = "ps_suppkey", "l_partkey" = "ps_partkey")) %>% 
     select(l_orderkey, l_extendedprice, l_discount, l_quantity, ps_supplycost, n_name)
 
-  all <- inner_join(lpspsn, 
+  all <- inner_join(
     tbl(s, "orders") %>% 
-        select(o_orderkey, o_orderdate), 
-    by = c("l_orderkey" = "o_orderkey")) %>% 
+      select(o_orderkey, o_orderdate), 
+    lpspsn,   
+    by = c("o_orderkey"= "l_orderkey" )) %>% 
     select(l_extendedprice, l_discount, l_quantity, ps_supplycost, n_name, o_orderdate)
 
   aggr <- all %>%
