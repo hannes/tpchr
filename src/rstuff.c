@@ -462,6 +462,46 @@ load_dists (void)
 
 }
 
+static void cleanup_dist(distribution *target) {
+	if (!target) {
+		return;
+	}
+	if (target->list) {
+		for (int i = 0; i < target->count; i++) {
+			if (target->list[i].text) {
+				free(target->list[i].text);
+			}
+		}
+		free(target->list);
+	}
+
+}
+
+static void cleanup_dists(void) {
+	cleanup_dist(&p_cntr_set);
+	cleanup_dist(&colors);
+	cleanup_dist(&p_types_set);
+	cleanup_dist(&nations);
+	cleanup_dist(&regions);
+	cleanup_dist(&o_priority_set);
+	cleanup_dist(&l_instruct_set);
+	cleanup_dist(&l_smode_set);
+	cleanup_dist(&l_category_set);
+	cleanup_dist(&l_rflag_set);
+	cleanup_dist(&c_mseg_set);
+	cleanup_dist(&nouns);
+	cleanup_dist(&verbs);
+	cleanup_dist(&adjectives);
+	cleanup_dist(&adverbs);
+	cleanup_dist(&auxillaries);
+	cleanup_dist(&terminators);
+	cleanup_dist(&articles);
+	cleanup_dist(&prepositions);
+	cleanup_dist(&grammar);
+	cleanup_dist(&np);
+	cleanup_dist(&vp);
+}
+
 
 tdef tdefs[] =
 {
@@ -737,6 +777,7 @@ static SEXP dbgen_R(SEXP sf, SEXP leansxp) {
 
 	UNPROTECT(ntab);
 	SET_NAMES(tables, names);
+	cleanup_dists();
 
 	UNPROTECT(3); // names, tables, dateClass
 	return tables;
