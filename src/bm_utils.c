@@ -335,55 +335,6 @@ long      weight,
     return;
 }
 
-/*
- * standard file open with life noise
- */
-
-FILE     *
-tbl_open(int tbl, char *mode)
-{
-    char      prompt[256];
-    char      fullpath[256];
-    FILE     *f = NULL;
-    struct stat fstats;
-    int      retcode;
-
-
-    if (*tdefs[tbl].name == PATH_SEP)
-        strcpy(fullpath, tdefs[tbl].name);
-    else
-        sprintf(fullpath, "%s%c%s",
-            env_config(PATH_TAG, PATH_DFLT), PATH_SEP, tdefs[tbl].name);
-
-    retcode = stat(fullpath, &fstats);
-    if (retcode) {
-		if (errno != ENOENT) {
-			fprintf(stderr, "stat(%s) failed.\n", fullpath);
-			exit(-1);
-		} else
-			f = fopen(fullpath, mode);  // create and open the file
-	} else {
-		/* note this code asumes we are writing but tests if mode == r -jrg */
-		if (S_ISREG(fstats.st_mode) && !force && *mode != 'r' ) {
-			sprintf(prompt, "Do you want to overwrite %s ?", fullpath);
-			if (!yes_no(prompt))
-				exit(0);
-			f = fopen(fullpath, mode);
-		} else if (S_ISFIFO(fstats.st_mode))
-			{
-			f = fopen(fullpath, mode);
-			}
-		else
-			{
-			retcode =
-				open(fullpath, ((*mode == 'r')?O_RDONLY:O_WRONLY)|O_CREAT, 0664);
-			f = fdopen(retcode, mode);
-			}
-	}
-    OPEN_CHECK(f, fullpath);
-
-    return (f);
-}
 
 
 /*

@@ -155,7 +155,6 @@ void     a_rnd PROTO((int min, int max, int column, char *dest));
 int     tx_rnd PROTO((long min, long max, long column, char *tgt));
 long	julian PROTO((long date));
 long	unjulian PROTO((long date));
-FILE	*tbl_open PROTO((int tbl, char *mode));
 long	dssncasecmp PROTO((char *s1, char *s2, int n));
 long	dsscasecmp PROTO((char *s1, char *s2));
 int		pick_str PROTO((distribution * s, int c, char *target));

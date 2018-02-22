@@ -1,9 +1,9 @@
 Package: tpchr
 Version: 0.0.3
-Title: R version of TPC-H's dbgen
+Title: TPC-H `dbgen` for R
 Author: Hannes Muehleisen [aut, cre]
 Maintainer: Hannes Muehleisen <hannes@cwi.nl>
-Description: Wraps the Transaction Processing Council's Decision Support Benchmark (TPC-H). Contains a R-adapted data generator, reference answers and DBI/dplyr queries.
+Description: Wraps the Transaction Processing Council's Decision Support Benchmark (`TPC-H`). Contains a R-adapted data generator, reference answers and `DBI`/`dplyr` queries.
 License: MPL (== 2.0)
 URL: https://github.com/hannesmuehleisen/tpchr
 Depends: R (>= 3.2.0)
